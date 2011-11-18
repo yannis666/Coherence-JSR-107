@@ -23,8 +23,9 @@ Creating a pom.xml at the root will make development easier. For convenience one
 For some initial setup please follow the instructions in [Coherence-JSR-107/README.md](Coherence-JSR-107/README.md)
 
 To run the TCK using the Coherence adapter you can use
+
     mvn \
-      -Dimplementation-groupId=oracle \
+       -Dimplementation-groupId=oracle \
       -Dimplementation-artifactId=coherence-jsr107 \
       -Dimplementation-version=0.1 \
       install
