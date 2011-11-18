@@ -39,25 +39,33 @@ import javax.cache.event.CacheEntryListener;
 import javax.cache.event.NotificationScope;
 import javax.cache.transaction.IsolationLevel;
 import javax.cache.transaction.Mode;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
 
 /**
  * @author ycosmado
  * @since 1.0
  */
 public class CoherenceCache<K, V> implements Cache<K, V> {
+    private static final int CACHE_LOADER_THREADS = 2;
+
     private final NamedCache namedCache;
     private final String cacheManagerName;
     private final CacheConfiguration configuration;
     private final ClassLoader classLoader;
     private final CacheLoader<K, V> cacheLoader;
     private final CacheWriter<K, V> cacheWriter;
+    private final ExecutorService executorService = Executors.newFixedThreadPool(CACHE_LOADER_THREADS);
     private volatile Status status;
 
     private CoherenceCache(NamedCache namedCache,
@@ -109,13 +117,32 @@ public class CoherenceCache<K, V> implements Cache<K, V> {
     @Override
     public Future<V> load(K key) throws CacheException {
         checkStatusStarted();
-        throw new UnsupportedOperationException();
+        if (key == null) {
+            throw new NullPointerException();
+        }
+        if (cacheLoader == null) {
+            return null;
+        }
+        FutureTask<V> task = new FutureTask<V>(new CoherenceCacheLoaderLoadCallable<K, V>(namedCache, cacheLoader, key));
+        executorService.submit(task);
+        return task;
     }
 
     @Override
     public Future<Map<K, V>> loadAll(Collection<? extends K> keys) throws CacheException {
         checkStatusStarted();
-        throw new UnsupportedOperationException();
+        if (keys == null) {
+            throw new NullPointerException();
+        }
+        if (keys.contains(null)) {
+            throw new NullPointerException();
+        }
+        if (cacheLoader == null) {
+            return null;
+        }
+        FutureTask<Map<K, V>> task = new FutureTask<Map<K, V>>(new CoherenceCacheLoaderLoadAllCallable<K, V>(namedCache, cacheLoader, keys));
+        executorService.submit(task);
+        return task;
     }
 
     @Override
@@ -300,6 +327,7 @@ public class CoherenceCache<K, V> implements Cache<K, V> {
 
     @Override
     public void stop() throws CacheException {
+        executorService.shutdown();
         namedCache.clear();
         //TODO: this causes problem
         //namedCache.release();
@@ -602,6 +630,56 @@ public class CoherenceCache<K, V> implements Cache<K, V> {
         @Override
         public Map processAll(Set setEntries) {
             throw new UnsupportedOperationException();
+        }
+    }
+
+    private static class CoherenceCacheLoaderLoadCallable<K, V> implements Callable<V> {
+        private final NamedCache cache;
+        private final CacheLoader<K, V> cacheLoader;
+        private final K key;
+
+        public CoherenceCacheLoaderLoadCallable(NamedCache cache, CacheLoader<K, V> cacheLoader, K key) {
+            this.cache = cache;
+            this.cacheLoader = cacheLoader;
+            this.key = key;
+        }
+
+        @Override
+        public V call() throws Exception {
+            Entry<K, V> entry = cacheLoader.load(key);
+            if (entry.getValue() == null) {
+                throw new NullPointerException();
+            }
+            cache.put(entry.getKey(), entry.getValue());
+            return entry.getValue();
+        }
+    }
+
+    private static class CoherenceCacheLoaderLoadAllCallable<K, V> implements Callable<Map<K, V>> {
+        private final NamedCache cache;
+        private final CacheLoader<K, V> cacheLoader;
+        private final Collection<? extends K> keys;
+
+        CoherenceCacheLoaderLoadAllCallable(NamedCache cache, CacheLoader<K, V> cacheLoader, Collection<? extends K> keys) {
+            this.cache = cache;
+            this.cacheLoader = cacheLoader;
+            this.keys = keys;
+        }
+
+        @Override
+        public Map<K, V> call() throws Exception {
+            ArrayList<K> keysNotInStore = new ArrayList<K>();
+            for (K key : keys) {
+                if (!cache.containsKey(key)) {
+                    keysNotInStore.add(key);
+                }
+            }
+            Map<K, V> value = cacheLoader.loadAll(keysNotInStore);
+            if (value.containsValue(null)) {
+                throw new NullPointerException();
+            }
+            cache.putAll(value);
+            return value;
         }
     }
 }
