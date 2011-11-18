@@ -9,7 +9,6 @@
 
     <modules>
         <module>jsr107</module>
-        <module>tck</module>
     </modules>
 
 </project>
