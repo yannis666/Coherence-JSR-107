@@ -1,107 +1,14 @@
 <project name="coh107" default="all">
     <property environment="env"/>
-    <property name="classpathref.compile" value="classpath.compile"/>
-    <dirname property="coh107.basedir" file="${ant.file.coh107}"/>
-    <property name="maven.repository" value="C:/Documents and Settings/ycosmado/.m2/repository"/>
-    <property name="jsr107-top" value="C:/Documents and Settings/ycosmado/src/jsr107" />
-    <property name="coherence-top" value="C:/clients/yac.laptop.coh/dev/release/coherence-v3.7.1" />
-    <property name="cache-api-jar" value="${jsr107-top}/jsr107spec/target/cache-api-0.3-SNAPSHOT.jar"/>
-    <property name="coherence-jar" value="${coherence-top}/build/lib/coherence.jar"/>
-    <property name="junit-jar" value="${coherence-top}/tools/common/junit/lib/junit.jar"/>
-    <property file="${coh107.basedir}/build.properties"/>
-
-    <path id="classpath.compile">
-        <pathelement location="${env.JAVA_HOME}/lib/tools.jar"/>
-        <pathelement location="${cache-api-jar}"/>
-        <pathelement location="${coherence-jar}"/>
-    </path>
-
-    <path id="classpath.test.compile">
-        <pathelement location="${junit-jar}"/>
-        <pathelement location="${classes.dir}"/>
-        <path refid="classpath.compile"/>
-    </path>
-
-    <path id="classpath.test">
-        <pathelement location="${test.classes.dir}"/>
-        <path refid="classpath.test.compile"/>
-    </path>
-
-    <path id="classpath.run">
-        <pathelement location="${classes.dir}"/>
-        <pathelement path="classpath.compile"/>
-    </path>
-
-    <presetdef name="my.javac">
-      <javac
-        debug="${javac.debug}"
-        optimize="${javac.optimize}"
-        deprecation="${javac.deprecation}"
-        includeAntRuntime="${javac.includeAntRuntime}"
-        source="${javac.source}"
-        target="${javac.target}"
-        srcdir="${src.dir}"
-        destdir="${classes.dir}"
-        classpathref="classpath.compile"
-      />
-    </presetdef>
-
-    <target name="compile">
-        <mkdir dir="${classes.dir}"/>
-        <my.javac />
-    </target>
-
-    <target name="test.compile" depends="compile">
-        <mkdir dir="${test.classes.dir}"/>
-        <my.javac srcdir="${test.src.dir}" classpathref="classpath.test.compile" destdir="${test.classes.dir}"/>
-    </target>
-
-    <target name="jar" depends="compile">
-        <mkdir dir="${lib.dir}"/>
-        <jar basedir="${classes.dir}" file="${lib.dir}/coherence107.jar">
-            <metainf dir="${resource.dir}/META-INF"/>
-        </jar>
-    </target>
-
-    <target name="clean">
-        <delete dir="${out.dir}"/>
-    </target>
-
-    <target name="test" depends="test.compile">
-        <mkdir dir="${junit.dir}"/>
-        <junit printsummary="yes" haltonerror="false" haltonfailure="false">
-            <classpath>
-                <path refid="classpath.test"/>
-            </classpath>
-            <batchtest todir="${junit.dir}">
-                <fileset dir="${test.src.dir}" includes="**/*Test.java"/>
-                <formatter type="xml"/>
-            </batchtest>
-        </junit>
-    </target>
+    <property name="coherence.jar" value="${env.COHERENCE_HOME}/lib/coherence.jar"/>
+    <property name="maven.repository" value="${env.HOME}/.m2/repository"/>
+   <property name="coherence.maven.dir" value="${maven.repository}/oracle/coherence/3.7.1"/>
 
     <target name="hack.maven.repository">
-        <property name="coherence.maven.dir" value="${maven.repository}/oracle/coherence/3.7.1"/>
         <mkdir dir="${coherence.maven.dir}"/>
-        <copy file="${coherence-jar}" tofile="${coherence.maven.dir}/coherence-3.7.1.jar"/>
+        <copy file="${coherence.jar}" tofile="${coherence.maven.dir}/coherence-3.7.1.jar"/>
     </target>
 
-    <target name="usage">
-        <echo>
-            ant hack.maven.repository
-            mvn install
-            cd ${jsr107-top}
-            cd jsr107tck/implementation-tester
-            mvn \
-             -Dimplementation-groupId=coherence.jsr107 \
-             -Dimplementation-artifactId=coherence-jsr107 \
-             -Dimplementation-version=0.1-SNAPSHOT \
-             -Dtest=CacheManagerFactoryTest \
-              test
-        </echo>
-    </target>
-
-    <target name="build" depends="jar,test.compile"/>
-    <target name="all" depends="jar,test"/>
+    <target name="all" depends="hack.maven.repository"/>
 
 </project>
