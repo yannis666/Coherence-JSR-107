@@ -25,7 +25,7 @@ For some initial setup please follow the instructions in [Coherence-JSR-107/READ
 To run the TCK using the Coherence adapter you can use
 
     mvn \
-       -Dimplementation-groupId=oracle \
-      -Dimplementation-artifactId=coherence-jsr107 \
+      -Dimplementation-groupId=oracle \
+      -Dimplementation-artifactId=coherence.jsr107 \
       -Dimplementation-version=0.1 \
       install
