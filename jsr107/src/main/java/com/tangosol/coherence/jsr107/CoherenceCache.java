@@ -20,12 +20,9 @@
  */
 package com.tangosol.coherence.jsr107;
 
-import com.sun.org.apache.xpath.internal.operations.Bool;
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
-import com.tangosol.net.cache.LocalCache;
 import com.tangosol.util.InvocableMap;
-import com.tangosol.util.LiteMap;
 
 import javax.cache.Cache;
 import javax.cache.CacheBuilder;
@@ -176,7 +173,7 @@ public class CoherenceCache<K, V> implements Cache<K, V> {
         if (value == null) {
             throw new NullPointerException();
         }
-        return (Boolean) namedCache.invoke(key, new PutIfAbsentProcessor(value));
+        return (Boolean) namedCache.invoke(key, new PutIfAbsentProcessor<V>(value));
     }
 
     @Override
@@ -194,7 +191,7 @@ public class CoherenceCache<K, V> implements Cache<K, V> {
         if (oldValue == null) {
             throw new NullPointerException();
         }
-        return (Boolean) namedCache.invoke(key, new Remove2Processor(oldValue));
+        return (Boolean) namedCache.invoke(key, new Remove2Processor<V>(oldValue));
     }
 
     @Override
@@ -218,7 +215,7 @@ public class CoherenceCache<K, V> implements Cache<K, V> {
         if (newValue == null) {
             throw new NullPointerException();
         }
-        return (Boolean) namedCache.invoke(key, new Replace3Processor(oldValue, newValue));
+        return (Boolean) namedCache.invoke(key, new Replace3Processor<V>(oldValue, newValue));
     }
 
     @Override
@@ -230,7 +227,7 @@ public class CoherenceCache<K, V> implements Cache<K, V> {
         if (value == null) {
             throw new NullPointerException();
         }
-        return (Boolean) namedCache.invoke(key, new Replace2Processor(value));
+        return (Boolean) namedCache.invoke(key, new Replace2Processor<V>(value));
     }
 
     @Override
@@ -242,7 +239,7 @@ public class CoherenceCache<K, V> implements Cache<K, V> {
         if (value == null) {
             throw new NullPointerException();
         }
-        return (V) namedCache.invoke(key, new GetAndReplaceProcessor(value));
+        return (V) namedCache.invoke(key, new GetAndReplaceProcessor<V>(value));
     }
 
     @Override
@@ -317,7 +314,7 @@ public class CoherenceCache<K, V> implements Cache<K, V> {
     @Override
     public Iterator<Entry<K, V>> iterator() {
         checkStatusStarted();
-        return new EntryIterator(namedCache.entrySet().iterator());
+        return new EntryIterator<K, V>(namedCache.entrySet().iterator());
     }
 
     private void checkStatusStarted() {
@@ -476,7 +473,7 @@ public class CoherenceCache<K, V> implements Cache<K, V> {
         }
     }
 
-    public class PutIfAbsentProcessor implements InvocableMap.EntryProcessor {
+    public static class PutIfAbsentProcessor<V> implements InvocableMap.EntryProcessor {
         private final V value;
 
         public PutIfAbsentProcessor(V value) {
@@ -498,7 +495,7 @@ public class CoherenceCache<K, V> implements Cache<K, V> {
         }
     }
 
-    public class Remove2Processor implements InvocableMap.EntryProcessor {
+    public static class Remove2Processor<V> implements InvocableMap.EntryProcessor {
         private final V oldValue;
 
         public Remove2Processor(V oldValue) {
@@ -520,7 +517,7 @@ public class CoherenceCache<K, V> implements Cache<K, V> {
         }
     }
 
-    public class RemoveAll1Processor implements InvocableMap.EntryProcessor {
+    public static class RemoveAll1Processor implements InvocableMap.EntryProcessor {
         @Override
         public Object process(InvocableMap.Entry entry) {
             throw new UnsupportedOperationException();
@@ -536,7 +533,7 @@ public class CoherenceCache<K, V> implements Cache<K, V> {
         }
     }
 
-    public class Replace2Processor implements InvocableMap.EntryProcessor {
+    public static class Replace2Processor<V> implements InvocableMap.EntryProcessor {
         private final V value;
 
         public Replace2Processor(V value) {
@@ -559,7 +556,7 @@ public class CoherenceCache<K, V> implements Cache<K, V> {
         }
     }
 
-    public class Replace3Processor implements InvocableMap.EntryProcessor {
+    public static class Replace3Processor<V> implements InvocableMap.EntryProcessor {
         private final V oldValue;
         private final V newValue;
 
@@ -584,7 +581,7 @@ public class CoherenceCache<K, V> implements Cache<K, V> {
         }
     }
 
-    public class GetAndReplaceProcessor implements InvocableMap.EntryProcessor {
+    public static class GetAndReplaceProcessor<V> implements InvocableMap.EntryProcessor {
         private final V value;
 
         public GetAndReplaceProcessor(V value) {
