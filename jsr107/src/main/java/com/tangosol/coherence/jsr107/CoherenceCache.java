@@ -22,6 +22,8 @@ package com.tangosol.coherence.jsr107;
 
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
+import com.tangosol.util.InvocableMap;
+import com.tangosol.util.WrapperException;
 
 import javax.cache.Cache;
 import javax.cache.CacheBuilder;
@@ -89,7 +91,11 @@ public class CoherenceCache<K, V> implements Cache<K, V> {
         if (key == null) {
             throw new NullPointerException();
         }
-        return (V) namedCache.get(key);
+        try {
+            return invokeWithCacheLoader(key, new GetProcessor<V>());
+        } catch (WrapperException e) {
+            throw thunkException(e);
+        }
     }
 
     @Override
@@ -101,7 +107,12 @@ public class CoherenceCache<K, V> implements Cache<K, V> {
         if (keys.contains(null)) {
             throw new NullPointerException();
         }
-        return namedCache.getAll(keys);
+        //return namedCache.getAll(keys);
+        try {
+            return invokeWithCacheLoader(keys, new GetProcessor<V>());
+        } catch (WrapperException e) {
+            throw thunkException(e);
+        }
     }
 
     @Override
@@ -344,14 +355,37 @@ public class CoherenceCache<K, V> implements Cache<K, V> {
         return new EntryIterator<K, V>(namedCache.entrySet().iterator());
     }
 
+    public NamedCache getNamedCache() {
+        return namedCache;
+    }
+
     private void checkStatusStarted() {
         if (!Status.STARTED.equals(status)) {
             throw new IllegalStateException("The cache status is not STARTED");
         }
     }
 
-    public NamedCache getNamedCache() {
-        return namedCache;
+    private RuntimeException thunkException(WrapperException e) {
+        Throwable originalException = e.getOriginalException();
+        if (originalException instanceof RuntimeException) {
+            return (RuntimeException) originalException;
+        } else {
+            return new CacheException(originalException);
+        }
+    }
+
+    private V invokeWithCacheLoader(K key, InvocableMap.EntryProcessor processor) {
+        Object ret = cacheLoader == null ?
+            namedCache.invoke(key, processor) :
+            namedCache.invoke(key, new CacheLoaderProcessor<K, V>(processor, cacheLoader));
+        return (V) ret;
+    }
+
+    private Map<K, V> invokeWithCacheLoader(Collection<? extends K> keys, GetProcessor<V> processor) {
+        Object ret = cacheLoader == null ?
+            namedCache.invokeAll(keys, processor) :
+            namedCache.invokeAll(keys, new CacheLoaderProcessor<K, V>(processor, cacheLoader));
+        return (Map<K, V>) ret;
     }
 
     public static class EntryIterator<K, V> implements Iterator<Entry<K, V>> {
