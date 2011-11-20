@@ -138,7 +138,10 @@ class CoherenceCacheManager implements CacheManager {
 
     @Override
     public void registerImmutableClass(Class<?> immutableClass) {
-       immutableClasses.add(immutableClass);
+        if (immutableClass == null) {
+            throw new NullPointerException();
+        }
+        immutableClasses.add(immutableClass);
     }
 
     @Override
