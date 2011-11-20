@@ -70,7 +70,7 @@ public class CoherenceCache<K, V> implements Cache<K, V> {
     private volatile Status status;
 
     private CoherenceCache(NamedCache namedCache,
-                    String cacheManagerName, Set<Class> immutableClasses, ClassLoader classLoader, CacheConfiguration configuration,
+                    String cacheManagerName, Set<Class<?>> immutableClasses, ClassLoader classLoader, CacheConfiguration configuration,
                     CacheLoader<K, V> cacheLoader, CacheWriter<K, V> cacheWriter) {
         status = Status.UNINITIALISED;
         assert namedCache != null;
@@ -425,13 +425,13 @@ public class CoherenceCache<K, V> implements Cache<K, V> {
         private final String cacheName;
         private final ClassLoader classLoader;
         private final String cacheManagerName;
-        private final Set<Class> immutableClasses;
+        private final Set<Class<?>> immutableClasses;
         private final ConfigurableCacheFactory ccf;
         private final CoherenceCacheConfiguration.Builder configurationBuilder = new CoherenceCacheConfiguration.Builder();
         private CacheLoader<K, V> cacheLoader;
         private CacheWriter<K, V> cacheWriter;
 
-        public Builder(String cacheName, String cacheManagerName, HashSet<Class> immutableClasses,
+        public Builder(String cacheName, String cacheManagerName, Set<Class<?>> immutableClasses,
                        ClassLoader classLoader, ConfigurableCacheFactory ccf) {
             if (cacheName == null) {
                 throw new NullPointerException("cacheName");

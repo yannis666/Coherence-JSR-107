@@ -48,16 +48,14 @@ import java.util.logging.Logger;
  * @author ycosmado
  * @since 1.0
  */
-class CoherenceCacheManager implements CacheManager {
+class CoherenceCacheManager extends AbstractCacheManager implements CacheManager {
     private static final Logger LOGGER = Logger.getLogger("javax.cache");
     private final HashMap<String, Cache<?, ?>> caches = new HashMap<String, Cache<?, ?>>();
-    private final HashSet<Class> immutableClasses = new HashSet<Class>();
-    private final String name;
-    private final ClassLoader classLoader;
     private volatile Status status;
     private final ConfigurableCacheFactory dccf;
 
     CoherenceCacheManager(ClassLoader classLoader, String name) {
+        super(name, classLoader);
         status = Status.UNINITIALISED;
         if (classLoader == null) {
             throw new NullPointerException("No classLoader specified");
@@ -65,15 +63,8 @@ class CoherenceCacheManager implements CacheManager {
         if (name == null) {
             throw new NullPointerException("No name specified");
         }
-        this.classLoader = classLoader;
-        this.name = name;
         dccf = new DefaultConfigurableCacheFactory();
         status = Status.STARTED;
-    }
-
-    @Override
-    public String getName() {
-        return name;
     }
 
     @Override
@@ -137,21 +128,11 @@ class CoherenceCacheManager implements CacheManager {
     }
 
     @Override
-    public void registerImmutableClass(Class<?> immutableClass) {
-        if (immutableClass == null) {
-            throw new NullPointerException();
-        }
-        immutableClasses.add(immutableClass);
-    }
-
-    @Override
     public void shutdown() {
         if (status != Status.STARTED) {
             throw new IllegalStateException();
         }
-        synchronized (immutableClasses) {
-            immutableClasses.clear();
-        }
+        super.shutdown();
         ArrayList<Cache<?, ?>> cacheList;
         synchronized (caches) {
             cacheList = new ArrayList<Cache<?, ?>>(caches.values());
@@ -190,7 +171,7 @@ class CoherenceCacheManager implements CacheManager {
         private final CoherenceCache.Builder<K, V> cacheBuilder;
 
         public CoherenceCacheBuilder(String cacheName) {
-            cacheBuilder = new CoherenceCache.Builder<K, V>(cacheName, name, immutableClasses, classLoader, dccf);
+            cacheBuilder = new CoherenceCache.Builder<K, V>(cacheName, getName(), getImmutableClasses(), getClassLoader(), dccf);
         }
 
         @Override
