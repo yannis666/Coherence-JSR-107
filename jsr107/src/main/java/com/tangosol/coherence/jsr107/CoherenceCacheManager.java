@@ -35,6 +35,7 @@ import javax.cache.OptionalFeature;
 import javax.cache.Status;
 import javax.cache.event.CacheEntryListener;
 import javax.cache.event.NotificationScope;
+import javax.cache.implementation.AbstractCacheManager;
 import javax.cache.transaction.IsolationLevel;
 import javax.cache.transaction.Mode;
 import java.util.ArrayList;
