@@ -41,8 +41,9 @@ public class Remove2Processor<V> implements InvocableMap.EntryProcessor {
         if (entry.isPresent() && entry.getValue().equals(oldValue)) {
             entry.remove(false);
             return Boolean.TRUE;
+        } else {
+            return Boolean.FALSE;
         }
-        return Boolean.FALSE;
     }
 
     @Override

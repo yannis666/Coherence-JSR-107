@@ -29,18 +29,25 @@ import java.util.Set;
  * @author ycosmado
  * @since 1.0
  */
-public class RemoveAll1Processor implements InvocableMap.EntryProcessor {
+public class GetAndPutProcessor<V> implements InvocableMap.EntryProcessor {
+    private final V value;
+
+    public GetAndPutProcessor(V value) {
+        this.value = value;
+    }
+
     @Override
     public Object process(InvocableMap.Entry entry) {
-        throw new UnsupportedOperationException();
+        V oldValue = null;
+        if (entry.isPresent()) {
+            oldValue = (V) entry.getValue();
+        }
+        entry.setValue(value);
+        return oldValue;
     }
 
     @Override
     public Map processAll(Set setEntries) {
-        for (Object e: setEntries) {
-            InvocableMap.Entry entry = (InvocableMap.Entry) e;
-            entry.remove(false);
-        }
-        return null;
+        throw new UnsupportedOperationException();
     }
 }

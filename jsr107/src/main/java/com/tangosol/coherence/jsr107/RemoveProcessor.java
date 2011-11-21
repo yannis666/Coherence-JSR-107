@@ -24,6 +24,7 @@ import com.tangosol.net.GuardSupport;
 import com.tangosol.util.InvocableMap;
 import com.tangosol.util.LiteMap;
 
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
@@ -31,24 +32,23 @@ import java.util.Set;
  * @author ycosmado
  * @since 1.0
  */
-public class GetProcessor<V> implements InvocableMap.EntryProcessor {
+public class RemoveProcessor implements InvocableMap.EntryProcessor {
     @Override
     public Object process(InvocableMap.Entry entry) {
-        return entry.isPresent() ? entry.getValue() : null;
+        if (entry.isPresent()) {
+            entry.remove(false);
+            return Boolean.TRUE;
+        } else {
+            return Boolean.FALSE;
+        }
     }
 
     @Override
     public Map processAll(Set setEntries) {
-        // adapted from AbstractProcessor
-        Map mapResults = new LiteMap();
-        for (Object setEntry : setEntries) {
+        for (Object entry : setEntries) {
             GuardSupport.heartbeat();
-            InvocableMap.Entry entry = (InvocableMap.Entry) setEntry;
-            Object value = process(entry);
-            if (value != null) {
-                mapResults.put(entry.getKey(), value);
-            }
+            process((InvocableMap.Entry) entry);
         }
-        return mapResults;
+        return null;
     }
 }

@@ -20,9 +20,7 @@
  */
 package com.tangosol.coherence.jsr107;
 
-import com.tangosol.net.GuardSupport;
 import com.tangosol.util.InvocableMap;
-import com.tangosol.util.LiteMap;
 
 import java.util.Map;
 import java.util.Set;
@@ -31,24 +29,21 @@ import java.util.Set;
  * @author ycosmado
  * @since 1.0
  */
-public class GetProcessor<V> implements InvocableMap.EntryProcessor {
+public class PutProcessor<V> implements InvocableMap.EntryProcessor {
+    private final V value;
+
+    public PutProcessor(V value) {
+        this.value = value;
+    }
+
     @Override
     public Object process(InvocableMap.Entry entry) {
-        return entry.isPresent() ? entry.getValue() : null;
+        entry.setValue(value);
+        return null;
     }
 
     @Override
     public Map processAll(Set setEntries) {
-        // adapted from AbstractProcessor
-        Map mapResults = new LiteMap();
-        for (Object setEntry : setEntries) {
-            GuardSupport.heartbeat();
-            InvocableMap.Entry entry = (InvocableMap.Entry) setEntry;
-            Object value = process(entry);
-            if (value != null) {
-                mapResults.put(entry.getKey(), value);
-            }
-        }
-        return mapResults;
+        throw new UnsupportedOperationException();
     }
 }

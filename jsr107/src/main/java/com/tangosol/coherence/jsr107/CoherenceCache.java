@@ -36,7 +36,6 @@ import javax.cache.event.NotificationScope;
 import javax.cache.implementation.AbstractCache;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -109,7 +108,11 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
         if (key == null) {
             throw new NullPointerException();
         }
-        return namedCache.containsKey(key);
+        try {
+            return (Boolean) namedCache.invoke(key, new ContainsKeyProcessor());
+        } catch (WrapperException e) {
+            throw thunkException(e);
+        }
     }
 
     @Override
@@ -146,11 +149,7 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
     @Override
     public CacheStatistics getStatistics() {
         checkStatusStarted();
-        if (getConfiguration().isStatisticsEnabled()) {
-            return statistics;
-        } else {
-            return null;
-        }
+        return getConfiguration().isStatisticsEnabled() ? statistics : null;
     }
 
     @Override
@@ -162,8 +161,11 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
         if (value == null) {
             throw new NullPointerException();
         }
-        Map<K, V> map = Collections.singletonMap(key, value);
-        namedCache.putAll(map);
+        try {
+            namedCache.invoke(key, new PutProcessor<V>(value));
+        } catch (WrapperException e) {
+            throw thunkException(e);
+        }
     }
 
     @Override
@@ -175,7 +177,11 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
         if (value == null) {
             throw new NullPointerException();
         }
-        return (V) namedCache.put(key, value);
+        try {
+            return (V) namedCache.invoke(key, new GetAndPutProcessor<V>(value));
+        } catch (WrapperException e) {
+            throw thunkException(e);
+        }
     }
 
     @Override
@@ -190,6 +196,7 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
         if (map.containsValue(null)) {
             throw new NullPointerException();
         }
+        //TODO: how to do with entry processors?
         namedCache.putAll(map);
         //throw new UnsupportedOperationException();
     }
@@ -203,13 +210,24 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
         if (value == null) {
             throw new NullPointerException();
         }
-        return (Boolean) namedCache.invoke(key, new PutIfAbsentProcessor<V>(value));
+        try {
+            return (Boolean) namedCache.invoke(key, new PutIfAbsentProcessor<V>(value));
+        } catch (WrapperException e) {
+            throw thunkException(e);
+        }
     }
 
     @Override
     public boolean remove(K key) throws CacheException {
-        //TODO: optimize
-        return getAndRemove(key) != null;
+        checkStatusStarted();
+        if (key == null) {
+            throw new NullPointerException();
+        }
+        try {
+            return (Boolean) namedCache.invoke(key, new RemoveProcessor());
+        } catch (WrapperException e) {
+            throw thunkException(e);
+        }
     }
 
     @Override
@@ -221,7 +239,11 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
         if (oldValue == null) {
             throw new NullPointerException();
         }
-        return (Boolean) namedCache.invoke(key, new Remove2Processor<V>(oldValue));
+        try {
+            return (Boolean) namedCache.invoke(key, new Remove2Processor<V>(oldValue));
+        } catch (WrapperException e) {
+            throw thunkException(e);
+        }
     }
 
     @Override
@@ -230,7 +252,11 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
         if (key == null) {
             throw new NullPointerException();
         }
-        return (V) namedCache.remove(key);
+        try {
+            return (V) namedCache.invoke(key, new GetAndRemoveProcessor());
+        } catch (WrapperException e) {
+            throw thunkException(e);
+        }
     }
 
     @Override
@@ -245,7 +271,11 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
         if (newValue == null) {
             throw new NullPointerException();
         }
-        return (Boolean) namedCache.invoke(key, new Replace3Processor<V>(oldValue, newValue));
+        try {
+            return (Boolean) namedCache.invoke(key, new Replace3Processor<V>(oldValue, newValue));
+        } catch (WrapperException e) {
+            throw thunkException(e);
+        }
     }
 
     @Override
@@ -257,7 +287,11 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
         if (value == null) {
             throw new NullPointerException();
         }
-        return (Boolean) namedCache.invoke(key, new Replace2Processor<V>(value));
+        try {
+            return (Boolean) namedCache.invoke(key, new Replace2Processor<V>(value));
+        } catch (WrapperException e) {
+            throw thunkException(e);
+        }
     }
 
     @Override
@@ -269,7 +303,11 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
         if (value == null) {
             throw new NullPointerException();
         }
-        return (V) namedCache.invoke(key, new GetAndReplaceProcessor<V>(value));
+        try {
+            return (V) namedCache.invoke(key, new GetAndReplaceProcessor<V>(value));
+        } catch (WrapperException e) {
+            throw thunkException(e);
+        }
     }
 
     @Override
@@ -281,7 +319,11 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
         if (keys.contains(null)) {
             throw new NullPointerException();
         }
-        namedCache.invokeAll(keys, new RemoveAll1Processor());
+        try {
+            namedCache.invokeAll(keys, new RemoveProcessor());
+        } catch (WrapperException e) {
+            throw thunkException(e);
+        }
     }
 
     @Override
