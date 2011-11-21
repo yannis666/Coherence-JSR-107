@@ -22,9 +22,7 @@ package com.tangosol.coherence.jsr107;
 
 import com.tangosol.net.GuardSupport;
 import com.tangosol.util.InvocableMap;
-import com.tangosol.util.LiteMap;
 
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
