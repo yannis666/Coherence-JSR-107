@@ -424,6 +424,7 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
         @Override
         public CoherenceCache<K, V> build() {
             CacheConfiguration configuration = createCacheConfiguration();
+            System.out.println("----YACHACK2: cl="+classLoader+" parent=" +classLoader.getParent());
             NamedCache namedCache = ccf.ensureCache(cacheName, classLoader);
             return new CoherenceCache<K, V>(namedCache, cacheName, cacheManagerName, immutableClasses, classLoader,
                     configuration, cacheLoader, cacheWriter);
