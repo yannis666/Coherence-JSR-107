@@ -25,8 +25,6 @@ import com.tangosol.util.processor.AbstractProcessor;
 
 import javax.cache.Cache;
 import javax.cache.CacheLoader;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * @author ycosmado

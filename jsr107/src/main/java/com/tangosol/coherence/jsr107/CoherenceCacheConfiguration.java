@@ -20,16 +20,11 @@
  */
 package com.tangosol.coherence.jsr107;
 
-import javax.cache.CacheConfiguration;
 import javax.cache.CacheLoader;
 import javax.cache.CacheWriter;
-import javax.cache.Caching;
-import javax.cache.InvalidConfigurationException;
-import javax.cache.OptionalFeature;
 import javax.cache.implementation.AbstractCacheConfiguration;
 import javax.cache.transaction.IsolationLevel;
 import javax.cache.transaction.Mode;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class CoherenceCacheConfiguration extends AbstractCacheConfiguration {
 
