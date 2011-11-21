@@ -49,10 +49,9 @@ import java.util.concurrent.FutureTask;
  * @since 1.0
  */
 public class CoherenceCache<K, V> extends AbstractCache<K, V> {
-    private static final int CACHE_LOADER_THREADS = 2;
-
     private final NamedCache namedCache;
     private volatile Status status;
+    private final CoherenceCacheStatistics statistics;
 
     private CoherenceCache(NamedCache namedCache,
                            String cacheName,
@@ -70,6 +69,7 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
             cacheLoader,
             cacheWriter);
         this.namedCache = namedCache;
+        this.statistics = new CoherenceCacheStatistics();
         status = Status.UNINITIALISED;
     }
 
@@ -95,7 +95,6 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
         if (keys.contains(null)) {
             throw new NullPointerException();
         }
-        //return namedCache.getAll(keys);
         try {
             return invokeWithCacheLoader(keys, new GetProcessor<V>());
         } catch (WrapperException e) {
@@ -145,7 +144,12 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
 
     @Override
     public CacheStatistics getStatistics() {
-        throw new UnsupportedOperationException();
+        checkStatusStarted();
+        if (getConfiguration().isStatisticsEnabled()) {
+            return statistics;
+        } else {
+            return null;
+        }
     }
 
     @Override
