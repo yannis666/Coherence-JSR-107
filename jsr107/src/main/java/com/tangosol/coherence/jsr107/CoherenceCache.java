@@ -38,6 +38,8 @@ import javax.cache.InvalidConfigurationException;
 import javax.cache.Status;
 import javax.cache.event.CacheEntryListener;
 import javax.cache.event.NotificationScope;
+import javax.cache.implementation.AbstractCache;
+import javax.cache.implementation.RICacheConfiguration;
 import javax.cache.transaction.IsolationLevel;
 import javax.cache.transaction.Mode;
 import java.util.ArrayList;
@@ -57,32 +59,29 @@ import java.util.concurrent.FutureTask;
  * @author ycosmado
  * @since 1.0
  */
-public class CoherenceCache<K, V> implements Cache<K, V> {
+public class CoherenceCache<K, V> extends AbstractCache<K, V> {
     private static final int CACHE_LOADER_THREADS = 2;
 
     private final NamedCache namedCache;
-    private final String cacheManagerName;
-    private final CacheConfiguration configuration;
-    private final ClassLoader classLoader;
-    private final CacheLoader<K, V> cacheLoader;
-    private final CacheWriter<K, V> cacheWriter;
-    private final ExecutorService executorService = Executors.newFixedThreadPool(CACHE_LOADER_THREADS);
     private volatile Status status;
 
     private CoherenceCache(NamedCache namedCache,
-                    String cacheManagerName, Set<Class<?>> immutableClasses, ClassLoader classLoader, CacheConfiguration configuration,
-                    CacheLoader<K, V> cacheLoader, CacheWriter<K, V> cacheWriter) {
-        status = Status.UNINITIALISED;
-        assert namedCache != null;
-        assert configuration != null;
-        assert cacheManagerName != null;
-        assert immutableClasses != null;
+                           String cacheName,
+                           String cacheManagerName,
+                           Set<Class<?>> immutableClasses,
+                           ClassLoader classLoader,
+                           CacheConfiguration configuration,
+                           CacheLoader<K, V> cacheLoader,
+                           CacheWriter<K, V> cacheWriter) {
+        super(cacheName,
+            cacheManagerName,
+            immutableClasses,
+            classLoader,
+            configuration,
+            cacheLoader,
+            cacheWriter);
         this.namedCache = namedCache;
-        this.cacheManagerName = cacheManagerName;
-        this.classLoader = classLoader;
-        this.configuration = configuration;
-        this.cacheLoader = cacheLoader;
-        this.cacheWriter = cacheWriter;
+        status = Status.UNINITIALISED;
     }
 
     @Override
@@ -130,11 +129,11 @@ public class CoherenceCache<K, V> implements Cache<K, V> {
         if (key == null) {
             throw new NullPointerException();
         }
-        if (cacheLoader == null) {
+        if (getCacheLoader() == null) {
             return null;
         }
-        FutureTask<V> task = new FutureTask<V>(new CoherenceCacheLoaderLoadCallable<K, V>(namedCache, cacheLoader, key));
-        executorService.submit(task);
+        FutureTask<V> task = new FutureTask<V>(new CoherenceCacheLoaderLoadCallable<K, V>(namedCache, getCacheLoader(), key));
+        submit(task);
         return task;
     }
 
@@ -147,11 +146,11 @@ public class CoherenceCache<K, V> implements Cache<K, V> {
         if (keys.contains(null)) {
             throw new NullPointerException();
         }
-        if (cacheLoader == null) {
+        if (getCacheLoader() == null) {
             return null;
         }
-        FutureTask<Map<K, V>> task = new FutureTask<Map<K, V>>(new CoherenceCacheLoaderLoadAllCallable<K, V>(namedCache, cacheLoader, keys));
-        executorService.submit(task);
+        FutureTask<Map<K, V>> task = new FutureTask<Map<K, V>>(new CoherenceCacheLoaderLoadAllCallable<K, V>(namedCache, getCacheLoader(), keys));
+        submit(task);
         return task;
     }
 
@@ -298,11 +297,6 @@ public class CoherenceCache<K, V> implements Cache<K, V> {
     }
 
     @Override
-    public CacheConfiguration getConfiguration() {
-        return configuration;
-    }
-
-    @Override
     public boolean registerCacheEntryListener(CacheEntryListener<? super K, ? super V> cacheEntryListener, NotificationScope scope, boolean synchronous) {
         throw new UnsupportedOperationException();
     }
@@ -315,11 +309,6 @@ public class CoherenceCache<K, V> implements Cache<K, V> {
     @Override
     public String getName() {
         return namedCache.getCacheName();
-    }
-
-    @Override
-    public CacheManager getCacheManager() {
-        return Caching.getCacheManager(classLoader, cacheManagerName);
     }
 
     @Override
@@ -337,7 +326,7 @@ public class CoherenceCache<K, V> implements Cache<K, V> {
 
     @Override
     public void stop() throws CacheException {
-        executorService.shutdown();
+        super.stop();
         namedCache.clear();
         //TODO: this causes problem
         //namedCache.release();
@@ -375,6 +364,7 @@ public class CoherenceCache<K, V> implements Cache<K, V> {
     }
 
     private V invokeWithCacheLoader(K key, InvocableMap.EntryProcessor processor) {
+        CacheLoader<K, V> cacheLoader = getCacheLoader();
         Object ret = cacheLoader == null ?
             namedCache.invoke(key, processor) :
             namedCache.invoke(key, new CacheLoaderProcessor<K, V>(processor, cacheLoader));
@@ -382,6 +372,7 @@ public class CoherenceCache<K, V> implements Cache<K, V> {
     }
 
     private Map<K, V> invokeWithCacheLoader(Collection<? extends K> keys, GetProcessor<V> processor) {
+        CacheLoader<K, V> cacheLoader = getCacheLoader();
         Object ret = cacheLoader == null ?
             namedCache.invokeAll(keys, processor) :
             namedCache.invokeAll(keys, new CacheLoaderProcessor<K, V>(processor, cacheLoader));
@@ -421,34 +412,20 @@ public class CoherenceCache<K, V> implements Cache<K, V> {
         }
     }
 
-    static class Builder<K, V> implements CacheBuilder<K, V> {
-        private final String cacheName;
-        private final ClassLoader classLoader;
-        private final String cacheManagerName;
-        private final Set<Class<?>> immutableClasses;
+    static class Builder<K, V> extends AbstractCache.Builder<K, V> {
         private final ConfigurableCacheFactory ccf;
-        private final CoherenceCacheConfiguration.Builder configurationBuilder = new CoherenceCacheConfiguration.Builder();
-        private CacheLoader<K, V> cacheLoader;
-        private CacheWriter<K, V> cacheWriter;
 
         public Builder(String cacheName, String cacheManagerName, Set<Class<?>> immutableClasses,
                        ClassLoader classLoader, ConfigurableCacheFactory ccf) {
-            if (cacheName == null) {
-                throw new NullPointerException("cacheName");
-            }
-            this.cacheName = cacheName;
-            if (classLoader == null) {
-                throw new NullPointerException("cacheLoader");
-            }
-            this.classLoader = classLoader;
-            if (cacheManagerName == null) {
-                throw new NullPointerException("cacheManagerName");
-            }
-            this.cacheManagerName = cacheManagerName;
-            if (immutableClasses == null) {
-                throw new NullPointerException("immutableClasses");
-            }
-            this.immutableClasses = immutableClasses;
+            this(cacheName, cacheManagerName, immutableClasses, classLoader, new CoherenceCacheConfiguration.Builder(), ccf);
+        }
+
+        private Builder(String cacheName, String cacheManagerName,
+                        Set<Class<?>> immutableClasses,
+                        ClassLoader classLoader,
+                        CoherenceCacheConfiguration.Builder configurationBuilder,
+                        ConfigurableCacheFactory ccf) {
+            super(cacheName, cacheManagerName, immutableClasses, classLoader, configurationBuilder);
             if (ccf == null) {
                 throw new NullPointerException("ConfigurableCacheFactory");
             }
@@ -457,15 +434,9 @@ public class CoherenceCache<K, V> implements Cache<K, V> {
 
         @Override
         public CoherenceCache<K, V> build() {
-            CacheConfiguration configuration = configurationBuilder.build();
-            if (configuration.isReadThrough() && (cacheLoader == null)) {
-                throw new InvalidConfigurationException("cacheLoader");
-            }
-            if (configuration.isWriteThrough() && (cacheWriter == null)) {
-                throw new InvalidConfigurationException("cacheWriter");
-            }
+            CacheConfiguration configuration = createCacheConfiguration();
             NamedCache namedCache = ccf.ensureCache(cacheName, classLoader);
-            return new CoherenceCache<K, V>(namedCache, cacheManagerName, immutableClasses, classLoader,
+            return new CoherenceCache<K, V>(namedCache, cacheName, cacheManagerName, immutableClasses, classLoader,
                     configuration, cacheLoader, cacheWriter);
         }
 
@@ -485,52 +456,8 @@ public class CoherenceCache<K, V> implements Cache<K, V> {
         }
 
         @Override
-        public CacheBuilder<K, V> setCacheWriter(CacheWriter<K, V> cacheWriter) {
-            if (cacheWriter == null) {
-                throw new NullPointerException("cacheWriter");
-            }
-            this.cacheWriter = cacheWriter;
-            return this;
-        }
-
-        @Override
-        public CacheBuilder<K, V> registerCacheEntryListener(CacheEntryListener<K, V> listener, NotificationScope scope, boolean synchronous) {
+        public Builder<K, V> registerCacheEntryListener(CacheEntryListener<K, V> listener, NotificationScope scope, boolean synchronous) {
             throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public CacheBuilder<K, V> setStoreByValue(boolean storeByValue) {
-            configurationBuilder.setStoreByValue(storeByValue);
-            return this;
-        }
-
-        @Override
-        public CacheBuilder<K, V> setTransactionEnabled(IsolationLevel isolationLevel, Mode mode) {
-            throw new InvalidConfigurationException();
-        }
-
-        @Override
-        public CacheBuilder<K, V> setStatisticsEnabled(boolean enableStatistics) {
-            configurationBuilder.setStatisticsEnabled(enableStatistics);
-            return this;
-        }
-
-        @Override
-        public CacheBuilder<K, V> setReadThrough(boolean readThrough) {
-            configurationBuilder.setReadThrough(readThrough);
-            return this;
-        }
-
-        @Override
-        public CacheBuilder<K, V> setWriteThrough(boolean writeThrough) {
-            configurationBuilder.setWriteThrough(writeThrough);
-            return this;
-        }
-
-        @Override
-        public CacheBuilder<K, V> setExpiry(CacheConfiguration.ExpiryType type, CacheConfiguration.Duration duration) {
-            configurationBuilder.setExpiry(type, duration);
-            return this;
         }
     }
 

@@ -26,86 +26,18 @@ import javax.cache.CacheWriter;
 import javax.cache.Caching;
 import javax.cache.InvalidConfigurationException;
 import javax.cache.OptionalFeature;
+import javax.cache.implementation.AbstractCacheConfiguration;
 import javax.cache.transaction.IsolationLevel;
 import javax.cache.transaction.Mode;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class CoherenceCacheConfiguration implements CacheConfiguration {
+public class CoherenceCacheConfiguration extends AbstractCacheConfiguration {
 
-    private final AtomicBoolean readThrough;
-    private final AtomicBoolean writeThrough;
-    private final AtomicBoolean storeByValue;
-    private final AtomicBoolean statisticsEnabled;
-    private final Duration[] timeToLive;
-
-    private CoherenceCacheConfiguration(boolean readThrough,
-                                 boolean writeThrough,
-                                 boolean storeByValue,
-                                 boolean statisticsEnabled,
-                                 Duration[] timeToLive) {
-        this.readThrough = new AtomicBoolean(readThrough);
-        this.writeThrough = new AtomicBoolean(writeThrough);
-        this.storeByValue = new AtomicBoolean(storeByValue);
-        this.statisticsEnabled = new AtomicBoolean(statisticsEnabled);
-        this.timeToLive = timeToLive;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean isReadThrough() {
-        return readThrough.get();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean isWriteThrough() {
-        return writeThrough.get();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean isStoreByValue() {
-        return storeByValue.get();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean isStatisticsEnabled() {
-        return statisticsEnabled.get();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void setStatisticsEnabled(boolean enableStatistics) {
-        this.statisticsEnabled.set(enableStatistics);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean isTransactionEnabled() {
-        return false;
-    }
-
-    @Override
-    public IsolationLevel getTransactionIsolationLevel() {
-        return IsolationLevel.NONE;
-    }
-
-    @Override
-    public Mode getTransactionMode() {
-        return Mode.NONE;
+    private CoherenceCacheConfiguration(boolean readThrough, boolean writeThrough,
+                                        boolean storeByValue, boolean statisticsEnabled,
+                                        IsolationLevel isolationLevel, Mode transactionMode,
+                                        Duration[] timeToLive) {
+        super(readThrough, writeThrough, storeByValue, statisticsEnabled, isolationLevel, transactionMode, timeToLive);
     }
 
     @Override
@@ -119,131 +51,31 @@ public class CoherenceCacheConfiguration implements CacheConfiguration {
     }
 
     @Override
-    public Duration getExpiry(ExpiryType type) {
-        return timeToLive[type.ordinal()];
-    }
-
-    @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof CacheConfiguration)) return false;
-
-        CacheConfiguration that = (CacheConfiguration) o;
-
-        if (isReadThrough() != that.isReadThrough()) return false;
-        if (isStatisticsEnabled() != that.isStatisticsEnabled()) return false;
-        if (isStoreByValue() != that.isStoreByValue()) return false;
-        if (isTransactionEnabled() != that.isTransactionEnabled()) return false;
-        if (isWriteThrough() != that.isWriteThrough()) return false;
-
-        return true;
+        return super.equals(o);
     }
 
     @Override
     public int hashCode() {
-        int result = readThrough.hashCode();
-        boolean b;
-
-        b = isWriteThrough();
-        result = 31 * result + (b ? 1 : 0);
-        b = isStoreByValue();
-        result = 31 * result + (b ? 1 : 0);
-        b = isStatisticsEnabled();
-        result = 31 * result + (b ? 1 : 0);
-        b = isTransactionEnabled();
-        result = 31 * result + (b ? 1 : 0);
-        return result;
+        return super.hashCode();
     }
 
     /**
      * Builds the config
      * @author Yannis Cosmadopoulos
      */
-    public static class Builder {
-        private static final boolean DEFAULT_READ_THROUGH = false;
-        private static final boolean DEFAULT_WRITE_THROUGH = false;
-        private static final boolean DEFAULT_STORE_BY_VALUE = true;
-        private static final boolean DEFAULT_STATISTICS_ENABLED = false;
-        private static final Duration DEFAULT_TIME_TO_LIVE = Duration.ETERNAL;
-
-        private boolean readThrough = DEFAULT_READ_THROUGH;
-        private boolean writeThrough = DEFAULT_WRITE_THROUGH;
-        private boolean storeByValue = DEFAULT_STORE_BY_VALUE;
-        private boolean statisticsEnabled = DEFAULT_STATISTICS_ENABLED;
-        private final Duration[] timeToLive;
-
-        public Builder() {
-            timeToLive = new Duration[ExpiryType.values().length];
-            for (int i = 0; i < timeToLive.length; i++) {
-                timeToLive[i] = DEFAULT_TIME_TO_LIVE;
-            }
-        }
+    public static class Builder extends AbstractCacheConfiguration.Builder {
 
         /**
-         * Set whether read through is active
-         * @param readThrough whether read through is active
-         * @return this Builder instance
-         */
-        public Builder setReadThrough(boolean readThrough) {
-            this.readThrough = readThrough;
-            return this;
-        }
-
-        /**
-         * Set whether write through is active
+         * Create a new CoherenceCacheConfiguration instance.
          *
-         * @param writeThrough whether write through is active
-         * @return this Builder instance
-         */
-        public Builder setWriteThrough(boolean writeThrough) {
-            this.writeThrough = writeThrough;
-            return this;
-        }
-
-        /**
-         * Set whether store by value is active
-         *
-         * @param storeByValue whether store by value is active
-         * @return this Builder instance
-         */
-        public Builder setStoreByValue(boolean storeByValue) {
-            if (!storeByValue && !Caching.isSupported(OptionalFeature.STORE_BY_REFERENCE)) {
-                throw new InvalidConfigurationException("storeByValue");
-            }
-            this.storeByValue = storeByValue;
-            return this;
-        }
-
-        /**
-         * Set whether statistics are enabled
-         *
-         * @param statisticsEnabled statistics are enabled
-         * @return this Builder instance
-         */
-        public Builder setStatisticsEnabled(boolean statisticsEnabled) {
-            this.statisticsEnabled = statisticsEnabled;
-            return this;
-        }
-
-        /**
-         * Create a new RICacheConfiguration instance.
-         *
-         * @return a new RICacheConfiguration instance
+         * @return a new CoherenceCacheConfiguration instance
          */
         public CoherenceCacheConfiguration build() {
-            return new CoherenceCacheConfiguration(readThrough, writeThrough, storeByValue, statisticsEnabled, timeToLive);
-        }
-
-        public Builder setExpiry(ExpiryType type, Duration duration) {
-            if (type == null) {
-                throw new NullPointerException();
-            }
-            if (duration == null) {
-                throw new NullPointerException();
-            }
-            this.timeToLive[type.ordinal()] =
-                    duration.getDurationAmount() == 0 ? Duration.ETERNAL : duration;
-            return this;
+            return new CoherenceCacheConfiguration(readThrough, writeThrough,
+                storeByValue, statisticsEnabled,
+                isolationLevel, transactionMode,
+                timeToLive);
         }
     }
 }
