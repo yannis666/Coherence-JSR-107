@@ -23,7 +23,7 @@
 
         <dependency>
             <groupId>javax.cache.implementation</groupId>
-            <artifactId>cache-ri-impl</artifactId>
+            <artifactId>cache-ri-common</artifactId>
             <version>0.5-SNAPSHOT</version>
         </dependency>
 

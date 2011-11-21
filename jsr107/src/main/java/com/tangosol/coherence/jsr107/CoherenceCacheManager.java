@@ -25,19 +25,13 @@ import com.tangosol.net.DefaultConfigurableCacheFactory;
 
 import javax.cache.Cache;
 import javax.cache.CacheBuilder;
-import javax.cache.CacheConfiguration;
 import javax.cache.CacheException;
-import javax.cache.CacheLoader;
 import javax.cache.CacheManager;
-import javax.cache.CacheWriter;
 import javax.cache.Caching;
 import javax.cache.OptionalFeature;
 import javax.cache.Status;
-import javax.cache.event.CacheEntryListener;
-import javax.cache.event.NotificationScope;
 import javax.cache.implementation.AbstractCacheManager;
-import javax.cache.transaction.IsolationLevel;
-import javax.cache.transaction.Mode;
+import javax.cache.implementation.DelegatingCacheBuilder;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -168,72 +162,16 @@ class CoherenceCacheManager extends AbstractCacheManager implements CacheManager
         }
     }
 
-    private class CoherenceCacheBuilder<K, V> implements CacheBuilder<K, V> {
-        private final CoherenceCache.Builder<K, V> cacheBuilder;
-
+    private class CoherenceCacheBuilder<K, V> extends DelegatingCacheBuilder<K, V> {
         public CoherenceCacheBuilder(String cacheName) {
-            cacheBuilder = new CoherenceCache.Builder<K, V>(cacheName, getName(), getImmutableClasses(), getClassLoader(), dccf);
+            super(new CoherenceCache.Builder<K, V>(cacheName, getName(), getImmutableClasses(), getClassLoader(), dccf));
         }
 
         @Override
         public Cache<K, V> build() {
-            Cache<K, V> cache = cacheBuilder.build();
+            Cache<K, V> cache = super.build();
             addCacheInternal(cache);
             return cache;
-        }
-
-        @Override
-        public CacheBuilder<K, V> setCacheLoader(CacheLoader<K, V> cacheLoader) {
-            cacheBuilder.setCacheLoader(cacheLoader);
-            return this;
-        }
-
-        @Override
-        public CacheBuilder<K, V> setCacheWriter(CacheWriter<K, V> cacheWriter) {
-            cacheBuilder.setCacheWriter(cacheWriter);
-            return this;
-        }
-
-        @Override
-        public CacheBuilder<K, V> registerCacheEntryListener(CacheEntryListener<K, V> listener, NotificationScope scope, boolean synchronous) {
-            cacheBuilder.registerCacheEntryListener(listener, scope, synchronous);
-            return this;
-        }
-
-        @Override
-        public CacheBuilder<K, V> setStoreByValue(boolean storeByValue) {
-            cacheBuilder.setStoreByValue(storeByValue);
-            return this;
-        }
-
-        @Override
-        public CacheBuilder<K, V> setTransactionEnabled(IsolationLevel isolationLevel, Mode mode) {
-            cacheBuilder.setTransactionEnabled(isolationLevel, mode);
-            return this;
-        }
-
-        @Override
-        public CacheBuilder<K, V> setStatisticsEnabled(boolean enableStatistics) {
-            cacheBuilder.setStatisticsEnabled(enableStatistics);
-            return this;
-        }
-
-        @Override
-        public CacheBuilder<K, V> setReadThrough(boolean readThrough) {
-            cacheBuilder.setReadThrough(readThrough);
-            return this;
-        }
-
-        @Override
-        public CacheBuilder<K, V> setWriteThrough(boolean writeThrough) {
-            cacheBuilder.setWriteThrough(writeThrough);
-            return this;
-        }
-
-        @Override
-        public CacheBuilder<K, V> setExpiry(CacheConfiguration.ExpiryType type, CacheConfiguration.Duration duration) {
-            cacheBuilder.setExpiry(type, duration);
-            return this;
         }
     }
 }
