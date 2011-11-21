@@ -29,9 +29,15 @@ import java.util.Date;
  * @since 1.0
  */
 public class CoherenceCacheStatistics implements CacheStatistics {
+    private final String name;
+
+    CoherenceCacheStatistics(String name) {
+        this.name = name;
+    }
+
     @Override
     public String getName() {
-        throw new UnsupportedOperationException();
+        return name;
     }
 
     @Override
