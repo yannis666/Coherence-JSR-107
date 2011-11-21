@@ -20,9 +20,25 @@
  */
 package com.tangosol.coherence.jsr107;
 
+import com.tangosol.coherence.jsr107.processors.CacheLoaderProcessor;
+import com.tangosol.coherence.jsr107.processors.ContainsKeyProcessor;
+import com.tangosol.coherence.jsr107.processors.GetAndPutProcessor;
+import com.tangosol.coherence.jsr107.processors.GetAndRemoveProcessor;
+import com.tangosol.coherence.jsr107.processors.GetAndReplaceProcessor;
+import com.tangosol.coherence.jsr107.processors.GetProcessor;
+import com.tangosol.coherence.jsr107.processors.PutIfAbsentProcessor;
+import com.tangosol.coherence.jsr107.processors.PutProcessor;
+import com.tangosol.coherence.jsr107.processors.Remove2Processor;
+import com.tangosol.coherence.jsr107.processors.RemoveProcessor;
+import com.tangosol.coherence.jsr107.processors.Replace2Processor;
+import com.tangosol.coherence.jsr107.processors.Replace3Processor;
+import com.tangosol.io.DefaultSerializer;
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
+import com.tangosol.util.Binary;
+import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.InvocableMap;
+import com.tangosol.util.LiteMap;
 import com.tangosol.util.WrapperException;
 
 import javax.cache.CacheConfiguration;
@@ -80,7 +96,7 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
             throw new NullPointerException();
         }
         try {
-            return invokeWithCacheLoader(key, new GetProcessor<V>());
+            return fromBinary(invokeWithCacheLoader(key, new GetProcessor()));
         } catch (WrapperException e) {
             throw thunkException(e);
         }
@@ -96,7 +112,7 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
             throw new NullPointerException();
         }
         try {
-            return invokeWithCacheLoader(keys, new GetProcessor<V>());
+            return fromBinary((Map<K, Binary>) invokeWithCacheLoader(keys, new GetProcessor()));
         } catch (WrapperException e) {
             throw thunkException(e);
         }
@@ -162,7 +178,7 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
             throw new NullPointerException();
         }
         try {
-            namedCache.invoke(key, new PutProcessor<V>(value));
+            namedCache.invoke(key, new PutProcessor(toBinary(value)));
         } catch (WrapperException e) {
             throw thunkException(e);
         }
@@ -413,12 +429,53 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
         return (V) ret;
     }
 
-    private Map<K, V> invokeWithCacheLoader(Collection<? extends K> keys, GetProcessor<V> processor) {
+    private Map invokeWithCacheLoader(Collection<? extends K> keys, GetProcessor processor) {
         CacheLoader<K, V> cacheLoader = getCacheLoader();
         Object ret = cacheLoader == null ?
             namedCache.invokeAll(keys, processor) :
             namedCache.invokeAll(keys, new CacheLoaderProcessor<K, V>(processor, cacheLoader));
-        return (Map<K, V>) ret;
+        return (Map) ret;
+    }
+
+    private <A> A fromBinary(Object o) {
+        if (o == null) {
+            return null;
+        } else {
+            return (A) ExternalizableHelper.fromBinary((Binary) o, getClassLoader());
+        }
+    }
+
+    //TODO: does not work...
+//    private Map<K, V> fromBinary(Map<Binary, Binary> binaryResult) {
+//        if (binaryResult == null) {
+//            return null;
+//        }
+//        ClassLoader classLoader = getClassLoader();
+//        LiteMap result = new LiteMap();
+//        for (Map.Entry<Binary, Binary> entry : binaryResult.entrySet()) {
+//            K key = (K) ExternalizableHelper.fromBinary(entry.getKey(), classLoader);
+//            V value = (V) ExternalizableHelper.fromBinary(entry.getValue(), classLoader);
+//            result.put(key, value);
+//        }
+//        return result;
+//    }
+
+    private Map<K, V> fromBinary(Map<K, Binary> binaryResult) {
+        if (binaryResult == null) {
+            return null;
+        }
+        ClassLoader classLoader = getClassLoader();
+        LiteMap result = new LiteMap();
+        for (Map.Entry<K, Binary> entry : binaryResult.entrySet()) {
+            K key = (K) entry.getKey();
+            V value = (V) ExternalizableHelper.fromBinary(entry.getValue(), classLoader);
+            result.put(key, value);
+        }
+        return result;
+    }
+
+    private <A> Binary toBinary(A o) {
+        return ExternalizableHelper.toBinary(o, new DefaultSerializer(getClassLoader()));
     }
 
     public static class EntryIterator<K, V> implements Iterator<Entry<K, V>> {
@@ -477,7 +534,6 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
         @Override
         public CoherenceCache<K, V> build() {
             CacheConfiguration configuration = createCacheConfiguration();
-            System.out.println("----YACHACK2: cl="+classLoader+" parent=" +classLoader.getParent());
             NamedCache namedCache = ccf.ensureCache(cacheName, classLoader);
             return new CoherenceCache<K, V>(namedCache, cacheName, cacheManagerName, immutableClasses, classLoader,
                     configuration, cacheLoader, cacheWriter);

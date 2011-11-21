@@ -18,37 +18,40 @@
  *
  * This notice may not be removed or altered.
  */
-package com.tangosol.coherence.jsr107;
+package com.tangosol.coherence.jsr107.processors;
 
-import com.tangosol.net.GuardSupport;
 import com.tangosol.util.InvocableMap;
-import com.tangosol.util.LiteMap;
+import com.tangosol.util.processor.AbstractProcessor;
 
-import java.util.Map;
-import java.util.Set;
+import javax.cache.Cache;
+import javax.cache.CacheLoader;
 
 /**
  * @author ycosmado
  * @since 1.0
  */
-public class GetProcessor<V> implements InvocableMap.EntryProcessor {
-    @Override
-    public Object process(InvocableMap.Entry entry) {
-        return entry.isPresent() ? entry.getValue() : null;
+public class CacheLoaderProcessor<K, V> extends AbstractProcessor {
+    private final InvocableMap.EntryProcessor next;
+    private final CacheLoader<K, V> cacheLoader;
+
+    public CacheLoaderProcessor(InvocableMap.EntryProcessor next, CacheLoader<K, V> cacheLoader) {
+        this.next = next;
+        this.cacheLoader = cacheLoader;
     }
 
     @Override
-    public Map processAll(Set setEntries) {
-        // adapted from AbstractProcessor
-        Map mapResults = new LiteMap();
-        for (Object setEntry : setEntries) {
-            GuardSupport.heartbeat();
-            InvocableMap.Entry entry = (InvocableMap.Entry) setEntry;
-            Object value = process(entry);
-            if (value != null) {
-                mapResults.put(entry.getKey(), value);
+    public Object process(InvocableMap.Entry entry) {
+        if (!entry.isPresent()) {
+            Cache.Entry<K, V> loaded = cacheLoader.load((K) entry.getKey());
+            if (loaded != null) {
+                V value = loaded.getValue();
+                if (value == null) {
+                    throw new NullPointerException();
+                }
+                entry.setValue(value);
+                boolean b = entry.isPresent();
             }
         }
-        return mapResults;
+        return next.process(entry);
     }
 }

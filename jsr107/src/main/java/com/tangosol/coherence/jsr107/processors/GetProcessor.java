@@ -18,9 +18,12 @@
  *
  * This notice may not be removed or altered.
  */
-package com.tangosol.coherence.jsr107;
+package com.tangosol.coherence.jsr107.processors;
 
+import com.tangosol.net.GuardSupport;
+import com.tangosol.util.BinaryEntry;
 import com.tangosol.util.InvocableMap;
+import com.tangosol.util.LiteMap;
 
 import java.util.Map;
 import java.util.Set;
@@ -29,25 +32,28 @@ import java.util.Set;
  * @author ycosmado
  * @since 1.0
  */
-public class Remove2Processor<V> implements InvocableMap.EntryProcessor {
-    private final V oldValue;
-
-    public Remove2Processor(V oldValue) {
-        this.oldValue = oldValue;
-    }
-
+public class GetProcessor implements InvocableMap.EntryProcessor {
     @Override
     public Object process(InvocableMap.Entry entry) {
-        if (entry.isPresent() && entry.getValue().equals(oldValue)) {
-            entry.remove(false);
-            return Boolean.TRUE;
-        } else {
-            return Boolean.FALSE;
-        }
+        BinaryEntry bEntry = (BinaryEntry) entry;
+        return bEntry.isPresent() ? bEntry.getBinaryValue() : null;
     }
 
     @Override
     public Map processAll(Set setEntries) {
-        throw new UnsupportedOperationException();
+        // adapted from AbstractProcessor
+        Map mapResults = new LiteMap();
+        for (Object setEntry : setEntries) {
+            GuardSupport.heartbeat();
+            InvocableMap.Entry entry = (InvocableMap.Entry) setEntry;
+            Object value = process(entry);
+            if (value != null) {
+                BinaryEntry bEntry = (BinaryEntry) entry;
+                //TODO: the following never gets to the other side...
+                //mapResults.put(bEntry.getBinaryKey(), value);
+                mapResults.put(bEntry.getKey(), value);
+            }
+        }
+        return mapResults;
     }
 }

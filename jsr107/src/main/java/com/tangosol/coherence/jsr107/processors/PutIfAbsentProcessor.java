@@ -18,7 +18,7 @@
  *
  * This notice may not be removed or altered.
  */
-package com.tangosol.coherence.jsr107;
+package com.tangosol.coherence.jsr107.processors;
 
 import com.tangosol.util.InvocableMap;
 
@@ -29,16 +29,20 @@ import java.util.Set;
  * @author ycosmado
  * @since 1.0
  */
-public class GetAndRemoveProcessor implements InvocableMap.EntryProcessor  {
+public class PutIfAbsentProcessor<V> implements InvocableMap.EntryProcessor {
+    private final V value;
+
+    public PutIfAbsentProcessor(V value) {
+        this.value = value;
+    }
+
     @Override
     public Object process(InvocableMap.Entry entry) {
-        if (entry.isPresent()) {
-            Object oldValue = entry.getValue();
-            entry.remove(false);
-            return oldValue;
-        } else {
-            return null;
+        if (!entry.isPresent()) {
+            entry.setValue(value);
+            return Boolean.TRUE;
         }
+        return Boolean.FALSE;
     }
 
     @Override

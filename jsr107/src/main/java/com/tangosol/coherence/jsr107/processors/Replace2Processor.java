@@ -18,40 +18,36 @@
  *
  * This notice may not be removed or altered.
  */
-package com.tangosol.coherence.jsr107;
+package com.tangosol.coherence.jsr107.processors;
 
 import com.tangosol.util.InvocableMap;
-import com.tangosol.util.processor.AbstractProcessor;
 
-import javax.cache.Cache;
-import javax.cache.CacheLoader;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author ycosmado
  * @since 1.0
  */
-public class CacheLoaderProcessor<K, V> extends AbstractProcessor {
-    private final InvocableMap.EntryProcessor next;
-    private final CacheLoader<K, V> cacheLoader;
+public class Replace2Processor<V> implements InvocableMap.EntryProcessor {
+    private final V value;
 
-    public CacheLoaderProcessor(InvocableMap.EntryProcessor next, CacheLoader<K, V> cacheLoader) {
-        this.next = next;
-        this.cacheLoader = cacheLoader;
+    public Replace2Processor(V value) {
+        this.value = value;
     }
 
     @Override
     public Object process(InvocableMap.Entry entry) {
-        if (!entry.isPresent()) {
-            Cache.Entry<K, V> loaded = cacheLoader.load((K) entry.getKey());
-            if (loaded != null) {
-                V value = loaded.getValue();
-                if (value == null) {
-                    throw new NullPointerException();
-                }
-                entry.setValue(value);
-                boolean b = entry.isPresent();
-            }
+        if (entry.isPresent()) {
+            entry.setValue(value);
+            return Boolean.TRUE;
+        } else {
+            return Boolean.FALSE;
         }
-        return next.process(entry);
+    }
+
+    @Override
+    public Map processAll(Set setEntries) {
+        throw new UnsupportedOperationException();
     }
 }
