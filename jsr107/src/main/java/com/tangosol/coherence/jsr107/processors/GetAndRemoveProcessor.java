@@ -20,6 +20,8 @@
  */
 package com.tangosol.coherence.jsr107.processors;
 
+import com.tangosol.util.Binary;
+import com.tangosol.util.BinaryEntry;
 import com.tangosol.util.InvocableMap;
 
 import java.util.Map;
@@ -33,8 +35,9 @@ public class GetAndRemoveProcessor implements InvocableMap.EntryProcessor  {
     @Override
     public Object process(InvocableMap.Entry entry) {
         if (entry.isPresent()) {
-            Object oldValue = entry.getValue();
-            entry.remove(false);
+            BinaryEntry bEntry = (BinaryEntry) entry;
+            Binary oldValue = bEntry.getBinaryValue();
+            bEntry.remove(false);
             return oldValue;
         } else {
             return null;
