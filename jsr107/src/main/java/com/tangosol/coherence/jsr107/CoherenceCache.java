@@ -20,19 +20,7 @@
  */
 package com.tangosol.coherence.jsr107;
 
-import com.tangosol.coherence.jsr107.processors.CacheLoaderProcessor;
-import com.tangosol.coherence.jsr107.processors.ContainsKeyProcessor;
-import com.tangosol.coherence.jsr107.processors.GetAndPutProcessor;
-import com.tangosol.coherence.jsr107.processors.GetAndRemoveProcessor;
-import com.tangosol.coherence.jsr107.processors.GetAndReplaceProcessor;
-import com.tangosol.coherence.jsr107.processors.GetProcessor;
-import com.tangosol.coherence.jsr107.processors.PutIfAbsentProcessor;
-import com.tangosol.coherence.jsr107.processors.PutProcessor;
-import com.tangosol.coherence.jsr107.processors.Remove2Processor;
-import com.tangosol.coherence.jsr107.processors.RemoveProcessor;
-import com.tangosol.coherence.jsr107.processors.Replace2Processor;
-import com.tangosol.coherence.jsr107.processors.Replace3Processor;
-import com.tangosol.io.DefaultSerializer;
+import com.tangosol.coherence.jsr107.processors.ProcessorFactory;
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
 import com.tangosol.util.Binary;
@@ -68,6 +56,7 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
     private final NamedCache namedCache;
     private volatile Status status;
     private final CoherenceCacheStatistics statistics;
+    private final ProcessorFactory<K, V> processorFactory;
 
     private CoherenceCache(NamedCache namedCache,
                            String cacheName,
@@ -86,6 +75,7 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
             cacheWriter);
         this.namedCache = namedCache;
         this.statistics = new CoherenceCacheStatistics(cacheName);
+        this.processorFactory = new ProcessorFactory<K, V>(classLoader);
         status = Status.UNINITIALISED;
     }
 
@@ -96,7 +86,7 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
             throw new NullPointerException();
         }
         try {
-            return (V) fromBinary(invokeWithCacheLoader(key, new GetProcessor()));
+            return (V) fromBinary(invokeWithCacheLoader(key, processorFactory.getGetProcessor()));
         } catch (WrapperException e) {
             throw thunkException(e);
         }
@@ -112,7 +102,7 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
             throw new NullPointerException();
         }
         try {
-            return fromBinary((Map<K, Binary>) invokeWithCacheLoader(keys, new GetProcessor()));
+            return fromBinary((Map<K, Binary>) invokeWithCacheLoader(keys, processorFactory.getGetProcessor()));
         } catch (WrapperException e) {
             throw thunkException(e);
         }
@@ -125,7 +115,7 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
             throw new NullPointerException();
         }
         try {
-            return (Boolean) namedCache.invoke(key, new ContainsKeyProcessor());
+            return (Boolean) namedCache.invoke(key, processorFactory.getContainsKeyProcessor());
         } catch (WrapperException e) {
             throw thunkException(e);
         }
@@ -178,7 +168,7 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
             throw new NullPointerException();
         }
         try {
-            namedCache.invoke(key, new PutProcessor(toBinary(value)));
+            namedCache.invoke(key, processorFactory.getPutProcessor(value));
         } catch (WrapperException e) {
             throw thunkException(e);
         }
@@ -194,7 +184,7 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
             throw new NullPointerException();
         }
         try {
-            return (V) fromBinary(namedCache.invoke(key, new GetAndPutProcessor(toBinary(value))));
+            return (V) fromBinary(namedCache.invoke(key, processorFactory.getGetAndPutProcessor(value)));
         } catch (WrapperException e) {
             throw thunkException(e);
         }
@@ -214,7 +204,6 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
         }
         //TODO: how to do with entry processors?
         namedCache.putAll(map);
-        //throw new UnsupportedOperationException();
     }
 
     @Override
@@ -227,7 +216,7 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
             throw new NullPointerException();
         }
         try {
-            return (Boolean) namedCache.invoke(key, new PutIfAbsentProcessor(toBinary(value)));
+            return (Boolean) namedCache.invoke(key, processorFactory.getPutIfAbsentProcessor(value));
         } catch (WrapperException e) {
             throw thunkException(e);
         }
@@ -240,7 +229,7 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
             throw new NullPointerException();
         }
         try {
-            return (Boolean) namedCache.invoke(key, new RemoveProcessor());
+            return (Boolean) namedCache.invoke(key, processorFactory.getRemoveProcessor());
         } catch (WrapperException e) {
             throw thunkException(e);
         }
@@ -256,7 +245,7 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
             throw new NullPointerException();
         }
         try {
-            return (Boolean) namedCache.invoke(key, new Remove2Processor(toBinary(oldValue)));
+            return (Boolean) namedCache.invoke(key, processorFactory.getRemove2Processor(oldValue));
         } catch (WrapperException e) {
             throw thunkException(e);
         }
@@ -269,7 +258,7 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
             throw new NullPointerException();
         }
         try {
-            return (V) fromBinary(namedCache.invoke(key, new GetAndRemoveProcessor()));
+            return (V) fromBinary(namedCache.invoke(key, processorFactory.getGetAndRemoveProcessor()));
         } catch (WrapperException e) {
             throw thunkException(e);
         }
@@ -288,7 +277,7 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
             throw new NullPointerException();
         }
         try {
-            return (Boolean) namedCache.invoke(key, new Replace3Processor(toBinary(oldValue), toBinary(newValue)));
+            return (Boolean) namedCache.invoke(key, processorFactory.getReplace3Processor(oldValue, newValue));
         } catch (WrapperException e) {
             throw thunkException(e);
         }
@@ -304,7 +293,7 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
             throw new NullPointerException();
         }
         try {
-            return (Boolean) namedCache.invoke(key, new Replace2Processor(toBinary(value)));
+            return (Boolean) namedCache.invoke(key, processorFactory.getReplace2Processor(value));
         } catch (WrapperException e) {
             throw thunkException(e);
         }
@@ -320,7 +309,7 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
             throw new NullPointerException();
         }
         try {
-            return (V) fromBinary(namedCache.invoke(key, new GetAndReplaceProcessor(toBinary(value))));
+            return (V) fromBinary(namedCache.invoke(key, processorFactory.getGetAndReplaceProcessor(value)));
         } catch (WrapperException e) {
             throw thunkException(e);
         }
@@ -336,7 +325,7 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
             throw new NullPointerException();
         }
         try {
-            namedCache.invokeAll(keys, new RemoveProcessor());
+            namedCache.invokeAll(keys, processorFactory.getRemoveProcessor());
         } catch (WrapperException e) {
             throw thunkException(e);
         }
@@ -425,15 +414,15 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
         CacheLoader<K, V> cacheLoader = getCacheLoader();
         Object ret = cacheLoader == null ?
             namedCache.invoke(key, processor) :
-            namedCache.invoke(key, new CacheLoaderProcessor<K, V>(processor, cacheLoader));
+            namedCache.invoke(key, processorFactory.getCacheLoaderProcessor(processor, cacheLoader));
         return (V) ret;
     }
 
-    private Map invokeWithCacheLoader(Collection<? extends K> keys, GetProcessor processor) {
+    private Map invokeWithCacheLoader(Collection<? extends K> keys, InvocableMap.EntryProcessor processor) {
         CacheLoader<K, V> cacheLoader = getCacheLoader();
         Object ret = cacheLoader == null ?
             namedCache.invokeAll(keys, processor) :
-            namedCache.invokeAll(keys, new CacheLoaderProcessor<K, V>(processor, cacheLoader));
+            namedCache.invokeAll(keys, processorFactory.getCacheLoaderProcessor(processor, cacheLoader));
         return (Map) ret;
     }
 
@@ -472,10 +461,6 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
             result.put(key, value);
         }
         return result;
-    }
-
-    private Binary toBinary(Object o) {
-        return ExternalizableHelper.toBinary(o, new DefaultSerializer(getClassLoader()));
     }
 
     public static class EntryIterator<K, V> implements Iterator<Entry<K, V>> {
