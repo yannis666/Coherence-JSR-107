@@ -50,6 +50,8 @@ public class GetProcessor implements InvocableMap.EntryProcessor {
             if (value != null) {
                 BinaryEntry bEntry = (BinaryEntry) entry;
                 //TODO: the following never gets to the other side...
+                //TODO: The problem is if the key class is not on the server...
+                //TODO: also seems to force us to deserialize the key
                 //mapResults.put(bEntry.getBinaryKey(), value);
                 mapResults.put(bEntry.getKey(), value);
             }
