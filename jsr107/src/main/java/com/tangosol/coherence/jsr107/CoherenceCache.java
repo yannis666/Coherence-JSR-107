@@ -256,7 +256,7 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
             throw new NullPointerException();
         }
         try {
-            return (Boolean) namedCache.invoke(key, new Remove2Processor<V>(oldValue));
+            return (Boolean) namedCache.invoke(key, new Remove2Processor(toBinary(oldValue)));
         } catch (WrapperException e) {
             throw thunkException(e);
         }
@@ -288,7 +288,7 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
             throw new NullPointerException();
         }
         try {
-            return (Boolean) namedCache.invoke(key, new Replace3Processor<V>(oldValue, newValue));
+            return (Boolean) namedCache.invoke(key, new Replace3Processor(toBinary(oldValue), toBinary(newValue)));
         } catch (WrapperException e) {
             throw thunkException(e);
         }
@@ -304,7 +304,7 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
             throw new NullPointerException();
         }
         try {
-            return (Boolean) namedCache.invoke(key, new Replace2Processor<V>(value));
+            return (Boolean) namedCache.invoke(key, new Replace2Processor(toBinary(value)));
         } catch (WrapperException e) {
             throw thunkException(e);
         }

@@ -20,6 +20,8 @@
  */
 package com.tangosol.coherence.jsr107.processors;
 
+import com.tangosol.util.Binary;
+import com.tangosol.util.BinaryEntry;
 import com.tangosol.util.InvocableMap;
 
 import java.util.Map;
@@ -29,23 +31,26 @@ import java.util.Set;
  * @author ycosmado
  * @since 1.0
  */
-public class Replace3Processor<V> implements InvocableMap.EntryProcessor {
-    private final V oldValue;
-    private final V newValue;
+public class Replace3Processor implements InvocableMap.EntryProcessor {
+    private final Binary oldValue;
+    private final Binary newValue;
 
-    public Replace3Processor(V oldValue, V newValue) {
+    public Replace3Processor(Binary oldValue, Binary newValue) {
         this.oldValue = oldValue;
         this.newValue = newValue;
     }
 
     @Override
     public Object process(InvocableMap.Entry entry) {
-        if (entry.isPresent() && entry.getValue().equals(oldValue)) {
-            entry.setValue(newValue);
-            return Boolean.TRUE;
-        } else {
-            return Boolean.FALSE;
+        Boolean ret = Boolean.FALSE;
+        if (entry.isPresent()) {
+            BinaryEntry bEntry = (BinaryEntry) entry;
+            if (bEntry.getBinaryValue().equals(oldValue)) {
+                bEntry.updateBinaryValue(newValue);
+                ret = Boolean.TRUE;
+            }
         }
+        return ret;
     }
 
     @Override

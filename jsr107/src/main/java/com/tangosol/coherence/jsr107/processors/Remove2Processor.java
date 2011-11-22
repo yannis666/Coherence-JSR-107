@@ -20,6 +20,8 @@
  */
 package com.tangosol.coherence.jsr107.processors;
 
+import com.tangosol.util.Binary;
+import com.tangosol.util.BinaryEntry;
 import com.tangosol.util.InvocableMap;
 
 import java.util.Map;
@@ -29,21 +31,24 @@ import java.util.Set;
  * @author ycosmado
  * @since 1.0
  */
-public class Remove2Processor<V> implements InvocableMap.EntryProcessor {
-    private final V oldValue;
+public class Remove2Processor implements InvocableMap.EntryProcessor {
+    private final Binary oldValue;
 
-    public Remove2Processor(V oldValue) {
+    public Remove2Processor(Binary oldValue) {
         this.oldValue = oldValue;
     }
 
     @Override
     public Object process(InvocableMap.Entry entry) {
-        if (entry.isPresent() && entry.getValue().equals(oldValue)) {
-            entry.remove(false);
-            return Boolean.TRUE;
-        } else {
-            return Boolean.FALSE;
+        Boolean ret = Boolean.FALSE;
+        if (entry.isPresent()) {
+            BinaryEntry bEntry = (BinaryEntry) entry;
+            if (bEntry.getBinaryValue().equals(oldValue)) {
+                bEntry.remove(false);
+                ret = Boolean.TRUE;
+            }
         }
+        return ret;
     }
 
     @Override
