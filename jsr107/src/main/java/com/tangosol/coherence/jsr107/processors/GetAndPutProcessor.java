@@ -20,6 +20,8 @@
  */
 package com.tangosol.coherence.jsr107.processors;
 
+import com.tangosol.util.Binary;
+import com.tangosol.util.BinaryEntry;
 import com.tangosol.util.InvocableMap;
 
 import java.util.Map;
@@ -29,20 +31,21 @@ import java.util.Set;
  * @author ycosmado
  * @since 1.0
  */
-public class GetAndPutProcessor<V> implements InvocableMap.EntryProcessor {
-    private final V value;
+public class GetAndPutProcessor implements InvocableMap.EntryProcessor {
+    private final Binary value;
 
-    public GetAndPutProcessor(V value) {
+    public GetAndPutProcessor(Binary value) {
         this.value = value;
     }
 
     @Override
     public Object process(InvocableMap.Entry entry) {
-        V oldValue = null;
-        if (entry.isPresent()) {
-            oldValue = (V) entry.getValue();
+        Binary oldValue = null;
+        BinaryEntry bEntry = (BinaryEntry) entry;
+        if (bEntry.isPresent()) {
+            oldValue = (Binary) bEntry.getBinaryValue();
         }
-        entry.setValue(value);
+        bEntry.updateBinaryValue(value);
         return oldValue;
     }
 

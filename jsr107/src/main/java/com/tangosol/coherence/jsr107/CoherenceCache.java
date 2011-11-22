@@ -194,7 +194,7 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
             throw new NullPointerException();
         }
         try {
-            return (V) namedCache.invoke(key, new GetAndPutProcessor<V>(value));
+            return fromBinary(namedCache.invoke(key, new GetAndPutProcessor(toBinary(value))));
         } catch (WrapperException e) {
             throw thunkException(e);
         }
