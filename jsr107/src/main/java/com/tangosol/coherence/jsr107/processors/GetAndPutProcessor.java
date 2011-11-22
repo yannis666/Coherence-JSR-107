@@ -40,11 +40,8 @@ public class GetAndPutProcessor implements InvocableMap.EntryProcessor {
 
     @Override
     public Object process(InvocableMap.Entry entry) {
-        Binary oldValue = null;
         BinaryEntry bEntry = (BinaryEntry) entry;
-        if (bEntry.isPresent()) {
-            oldValue = (Binary) bEntry.getBinaryValue();
-        }
+        Binary oldValue = bEntry.isPresent() ? bEntry.getBinaryValue() : null;
         bEntry.updateBinaryValue(value);
         return oldValue;
     }

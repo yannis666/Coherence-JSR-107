@@ -40,13 +40,12 @@ public class Replace2Processor implements InvocableMap.EntryProcessor {
 
     @Override
     public Object process(InvocableMap.Entry entry) {
-        if (entry.isPresent()) {
-            BinaryEntry bEntry = (BinaryEntry) entry;
+        BinaryEntry bEntry = (BinaryEntry) entry;
+        if (bEntry.isPresent()) {
             bEntry.updateBinaryValue(value);
             return Boolean.TRUE;
-        } else {
-            return Boolean.FALSE;
         }
+        return Boolean.FALSE;
     }
 
     @Override

@@ -36,9 +36,8 @@ public class RemoveProcessor implements InvocableMap.EntryProcessor {
         if (entry.isPresent()) {
             entry.remove(false);
             return Boolean.TRUE;
-        } else {
-            return Boolean.FALSE;
         }
+        return Boolean.FALSE;
     }
 
     @Override

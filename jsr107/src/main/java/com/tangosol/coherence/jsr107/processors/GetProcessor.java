@@ -45,10 +45,9 @@ public class GetProcessor implements InvocableMap.EntryProcessor {
         Map mapResults = new LiteMap();
         for (Object setEntry : setEntries) {
             GuardSupport.heartbeat();
-            InvocableMap.Entry entry = (InvocableMap.Entry) setEntry;
-            Object value = process(entry);
+            BinaryEntry bEntry = (BinaryEntry) setEntry;
+            Object value = process(bEntry);
             if (value != null) {
-                BinaryEntry bEntry = (BinaryEntry) entry;
                 //TODO: the following never gets to the other side...
                 //TODO: The problem is if the key class is not on the server...
                 //TODO: also seems to force us to deserialize the key

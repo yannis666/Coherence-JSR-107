@@ -96,7 +96,7 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
             throw new NullPointerException();
         }
         try {
-            return fromBinary(invokeWithCacheLoader(key, new GetProcessor()));
+            return (V) fromBinary(invokeWithCacheLoader(key, new GetProcessor()));
         } catch (WrapperException e) {
             throw thunkException(e);
         }
@@ -194,7 +194,7 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
             throw new NullPointerException();
         }
         try {
-            return fromBinary(namedCache.invoke(key, new GetAndPutProcessor(toBinary(value))));
+            return (V) fromBinary(namedCache.invoke(key, new GetAndPutProcessor(toBinary(value))));
         } catch (WrapperException e) {
             throw thunkException(e);
         }
@@ -269,7 +269,7 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
             throw new NullPointerException();
         }
         try {
-            return fromBinary(namedCache.invoke(key, new GetAndRemoveProcessor()));
+            return (V) fromBinary(namedCache.invoke(key, new GetAndRemoveProcessor()));
         } catch (WrapperException e) {
             throw thunkException(e);
         }
@@ -320,7 +320,7 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
             throw new NullPointerException();
         }
         try {
-            return fromBinary(namedCache.invoke(key, new GetAndReplaceProcessor(toBinary(value))));
+            return (V) fromBinary(namedCache.invoke(key, new GetAndReplaceProcessor(toBinary(value))));
         } catch (WrapperException e) {
             throw thunkException(e);
         }
@@ -437,11 +437,11 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
         return (Map) ret;
     }
 
-    private <A> A fromBinary(Object o) {
+    private Object fromBinary(Object o) {
         if (o == null) {
             return null;
         } else {
-            return (A) ExternalizableHelper.fromBinary((Binary) o, getClassLoader());
+            return ExternalizableHelper.fromBinary((Binary) o, getClassLoader());
         }
     }
 
@@ -474,7 +474,7 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
         return result;
     }
 
-    private <A> Binary toBinary(A o) {
+    private Binary toBinary(Object o) {
         return ExternalizableHelper.toBinary(o, new DefaultSerializer(getClassLoader()));
     }
 

@@ -42,15 +42,12 @@ public class Replace3Processor implements InvocableMap.EntryProcessor {
 
     @Override
     public Object process(InvocableMap.Entry entry) {
-        Boolean ret = Boolean.FALSE;
-        if (entry.isPresent()) {
-            BinaryEntry bEntry = (BinaryEntry) entry;
-            if (bEntry.getBinaryValue().equals(oldValue)) {
-                bEntry.updateBinaryValue(newValue);
-                ret = Boolean.TRUE;
-            }
+        BinaryEntry bEntry = (BinaryEntry) entry;
+        if (entry.isPresent() && bEntry.getBinaryValue().equals(oldValue)) {
+            bEntry.updateBinaryValue(newValue);
+            return Boolean.TRUE;
         }
-        return ret;
+        return Boolean.FALSE;
     }
 
     @Override

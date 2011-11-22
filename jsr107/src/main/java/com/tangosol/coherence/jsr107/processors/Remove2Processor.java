@@ -40,15 +40,12 @@ public class Remove2Processor implements InvocableMap.EntryProcessor {
 
     @Override
     public Object process(InvocableMap.Entry entry) {
-        Boolean ret = Boolean.FALSE;
-        if (entry.isPresent()) {
-            BinaryEntry bEntry = (BinaryEntry) entry;
-            if (bEntry.getBinaryValue().equals(oldValue)) {
-                bEntry.remove(false);
-                ret = Boolean.TRUE;
-            }
+        BinaryEntry bEntry = (BinaryEntry) entry;
+        if (bEntry.isPresent() && bEntry.getBinaryValue().equals(oldValue)) {
+            bEntry.remove(false);
+            return Boolean.TRUE;
         }
-        return ret;
+        return Boolean.FALSE;
     }
 
     @Override

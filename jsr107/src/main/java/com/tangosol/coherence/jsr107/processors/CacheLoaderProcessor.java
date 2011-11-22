@@ -49,7 +49,6 @@ public class CacheLoaderProcessor<K, V> extends AbstractProcessor {
                     throw new NullPointerException();
                 }
                 entry.setValue(value);
-                boolean b = entry.isPresent();
             }
         }
         return next.process(entry);

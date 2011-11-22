@@ -40,8 +40,8 @@ public class GetAndReplaceProcessor implements InvocableMap.EntryProcessor {
 
     @Override
     public Object process(InvocableMap.Entry entry) {
-        if (entry.isPresent()) {
-            BinaryEntry bEntry = (BinaryEntry) entry;
+        BinaryEntry bEntry = (BinaryEntry) entry;
+        if (bEntry.isPresent()) {
             Binary oldValue = bEntry.getBinaryValue();
             bEntry.updateBinaryValue(value);
             return oldValue;
