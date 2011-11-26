@@ -34,6 +34,7 @@ import javax.cache.CacheException;
 import javax.cache.CacheLoader;
 import javax.cache.CacheStatistics;
 import javax.cache.CacheWriter;
+import javax.cache.EntryProcessor;
 import javax.cache.Status;
 import javax.cache.event.CacheEntryListener;
 import javax.cache.event.NotificationScope;
@@ -350,6 +351,11 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
         if (TEMPORARY_YACHACK_TCK_FREEK) {
             return false;
         }
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Object invokeEntryProcessor(K key, EntryProcessor entryProcessor) {
         throw new UnsupportedOperationException();
     }
 
