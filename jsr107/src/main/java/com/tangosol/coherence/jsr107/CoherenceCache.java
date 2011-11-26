@@ -34,7 +34,6 @@ import javax.cache.CacheException;
 import javax.cache.CacheLoader;
 import javax.cache.CacheStatistics;
 import javax.cache.CacheWriter;
-import javax.cache.EntryProcessor;
 import javax.cache.Status;
 import javax.cache.event.CacheEntryListener;
 import javax.cache.event.NotificationScope;
@@ -355,7 +354,7 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
     }
 
     @Override
-    public Object invokeEntryProcessor(K key, EntryProcessor entryProcessor) {
+    public Object invokeAtomicOperation(K key, AtomicOperation atomicOperation) {
         throw new UnsupportedOperationException();
     }
 
