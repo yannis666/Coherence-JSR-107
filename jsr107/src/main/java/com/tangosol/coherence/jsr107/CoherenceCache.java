@@ -355,6 +355,13 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
 
     @Override
     public Object invokeEntryProcessor(K key, EntryProcessor<K, V> entryProcessor) {
+        checkStatusStarted();
+        if (key == null) {
+            throw new NullPointerException();
+        }
+        if (entryProcessor == null) {
+            throw new NullPointerException();
+        }
         throw new UnsupportedOperationException();
     }
 
