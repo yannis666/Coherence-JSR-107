@@ -354,7 +354,7 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
     }
 
     @Override
-    public Object invokeAtomicOperation(K key, AtomicOperation atomicOperation) {
+    public Object invokeEntryProcessor(K key, EntryProcessor entryProcessor) {
         throw new UnsupportedOperationException();
     }
 
