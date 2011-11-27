@@ -354,7 +354,7 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
     }
 
     @Override
-    public Object invokeEntryProcessor(K key, EntryProcessor entryProcessor) {
+    public Object invokeEntryProcessor(K key, EntryProcessor<K, V> entryProcessor) {
         throw new UnsupportedOperationException();
     }
 
