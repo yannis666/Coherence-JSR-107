@@ -20,6 +20,7 @@
  */
 package com.tangosol.coherence.jsr107;
 
+import com.tangosol.coherence.jsr107.processors.ConverterProcessor;
 import com.tangosol.coherence.jsr107.processors.ProcessorFactory;
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
@@ -362,7 +363,11 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
         if (entryProcessor == null) {
             throw new NullPointerException();
         }
-        throw new UnsupportedOperationException();
+        try {
+            return namedCache.invoke(key, new ConverterProcessor(entryProcessor));
+        } catch (WrapperException e) {
+            throw thunkException(e);
+        }
     }
 
     @Override
@@ -417,6 +422,8 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
         Throwable originalException = e.getOriginalException();
         if (originalException instanceof RuntimeException) {
             return (RuntimeException) originalException;
+        } else if (originalException instanceof Error) {
+            throw (Error) originalException;
         } else {
             return new CacheException(originalException);
         }
