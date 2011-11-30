@@ -32,9 +32,9 @@ import javax.cache.CacheLoader;
  */
 public class CacheLoaderProcessor<K, V> extends AbstractProcessor {
     private final InvocableMap.EntryProcessor next;
-    private final CacheLoader<K, V> cacheLoader;
+    private final CacheLoader<K, ? extends V> cacheLoader;
 
-    public CacheLoaderProcessor(InvocableMap.EntryProcessor next, CacheLoader<K, V> cacheLoader) {
+    public CacheLoaderProcessor(InvocableMap.EntryProcessor next, CacheLoader<K, ? extends V> cacheLoader) {
         this.next = next;
         this.cacheLoader = cacheLoader;
     }
@@ -42,7 +42,7 @@ public class CacheLoaderProcessor<K, V> extends AbstractProcessor {
     @Override
     public Object process(InvocableMap.Entry entry) {
         if (!entry.isPresent()) {
-            Cache.Entry<K, V> loaded = cacheLoader.load((K) entry.getKey());
+            Cache.Entry<K, ? extends V> loaded = cacheLoader.load((K) entry.getKey());
             if (loaded != null) {
                 V value = loaded.getValue();
                 if (value == null) {

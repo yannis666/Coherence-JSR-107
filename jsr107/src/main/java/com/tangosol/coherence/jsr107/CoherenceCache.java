@@ -65,8 +65,8 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
                            Set<Class<?>> immutableClasses,
                            ClassLoader classLoader,
                            CacheConfiguration configuration,
-                           CacheLoader<K, V> cacheLoader,
-                           CacheWriter<K, V> cacheWriter) {
+                           CacheLoader<K, ? extends V> cacheLoader,
+                           CacheWriter<? super K, ? super V> cacheWriter) {
         super(cacheName,
             cacheManagerName,
             immutableClasses,
@@ -148,7 +148,7 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
         if (getCacheLoader() == null) {
             return null;
         }
-        FutureTask<Map<K, V>> task = new FutureTask<Map<K, V>>(new CoherenceCacheLoaderLoadAllCallable<K, V>(namedCache, getCacheLoader(), keys));
+        FutureTask<Map<K, V>> task = new FutureTask<Map<K, V>>(new CoherenceCacheLoaderLoadAllCallable(namedCache, getCacheLoader(), keys));
         submit(task);
         return task;
     }
@@ -430,7 +430,7 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
     }
 
     private V invokeWithCacheLoader(K key, InvocableMap.EntryProcessor processor) {
-        CacheLoader<K, V> cacheLoader = getCacheLoader();
+        CacheLoader<K, ? extends V> cacheLoader = getCacheLoader();
         Object ret = cacheLoader == null ?
             namedCache.invoke(key, processor) :
             namedCache.invoke(key, processorFactory.getCacheLoaderProcessor(processor, cacheLoader));
@@ -438,7 +438,7 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
     }
 
     private Map invokeWithCacheLoader(Collection<? extends K> keys, InvocableMap.EntryProcessor processor) {
-        CacheLoader<K, V> cacheLoader = getCacheLoader();
+        CacheLoader<K, ? extends V> cacheLoader = getCacheLoader();
         Object ret = cacheLoader == null ?
             namedCache.invokeAll(keys, processor) :
             namedCache.invokeAll(keys, processorFactory.getCacheLoaderProcessor(processor, cacheLoader));
@@ -550,7 +550,7 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
          * @return the builder
          */
         @Override
-        public Builder<K, V> setCacheLoader(CacheLoader<K, V> cacheLoader) {
+        public Builder<K, V> setCacheLoader(CacheLoader<K, ? extends V> cacheLoader) {
             if (cacheLoader == null) {
                 throw new NullPointerException("cacheLoader");
             }
@@ -566,10 +566,10 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
 
     private static class CoherenceCacheLoaderLoadCallable<K, V> implements Callable<V> {
         private final NamedCache cache;
-        private final CacheLoader<K, V> cacheLoader;
+        private final CacheLoader<K, ? extends V> cacheLoader;
         private final K key;
 
-        public CoherenceCacheLoaderLoadCallable(NamedCache cache, CacheLoader<K, V> cacheLoader, K key) {
+        public CoherenceCacheLoaderLoadCallable(NamedCache cache, CacheLoader<K, ? extends V> cacheLoader, K key) {
             this.cache = cache;
             this.cacheLoader = cacheLoader;
             this.key = key;
@@ -577,7 +577,7 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
 
         @Override
         public V call() throws Exception {
-            Entry<K, V> entry = cacheLoader.load(key);
+            Entry<K, ? extends V> entry = cacheLoader.load(key);
             if (entry.getValue() == null) {
                 throw new NullPointerException();
             }
@@ -586,26 +586,26 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
         }
     }
 
-    private static class CoherenceCacheLoaderLoadAllCallable<K, V> implements Callable<Map<K, V>> {
+    private static class CoherenceCacheLoaderLoadAllCallable<K, V> implements Callable<Map<K, ? extends V>> {
         private final NamedCache cache;
-        private final CacheLoader<K, V> cacheLoader;
+        private final CacheLoader<K, ? extends V> cacheLoader;
         private final Collection<? extends K> keys;
 
-        CoherenceCacheLoaderLoadAllCallable(NamedCache cache, CacheLoader<K, V> cacheLoader, Collection<? extends K> keys) {
+        CoherenceCacheLoaderLoadAllCallable(NamedCache cache, CacheLoader<K, ? extends V> cacheLoader, Collection<? extends K> keys) {
             this.cache = cache;
             this.cacheLoader = cacheLoader;
             this.keys = keys;
         }
 
         @Override
-        public Map<K, V> call() throws Exception {
+        public Map<K, ? extends V> call() throws Exception {
             ArrayList<K> keysNotInStore = new ArrayList<K>();
             for (K key : keys) {
                 if (!cache.containsKey(key)) {
                     keysNotInStore.add(key);
                 }
             }
-            Map<K, V> value = cacheLoader.loadAll(keysNotInStore);
+            Map<K, ? extends V> value = cacheLoader.loadAll(keysNotInStore);
             if (value.containsValue(null)) {
                 throw new NullPointerException();
             }

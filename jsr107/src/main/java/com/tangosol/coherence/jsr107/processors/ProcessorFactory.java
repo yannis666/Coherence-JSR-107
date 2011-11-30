@@ -82,7 +82,7 @@ public class ProcessorFactory<K, V> {
         return new GetAndReplaceProcessor(toBinary(value));
     }
 
-    public InvocableMap.EntryProcessor getCacheLoaderProcessor(InvocableMap.EntryProcessor processor, CacheLoader<K, V> cacheLoader) {
+    public InvocableMap.EntryProcessor getCacheLoaderProcessor(InvocableMap.EntryProcessor processor, CacheLoader<K, ? extends V> cacheLoader) {
         return new CacheLoaderProcessor<K, V>(processor, cacheLoader);
     }
 
