@@ -380,6 +380,9 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
         if (cls.isAssignableFrom(this.getClass())) {
             return cls.cast(this);
         }
+        if (cls.isAssignableFrom(NamedCache.class)) {
+            return cls.cast(namedCache);
+        }
         throw new IllegalArgumentException();
     }
 
@@ -406,10 +409,6 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
     public Iterator<Entry<K, V>> iterator() {
         checkStatusStarted();
         return new EntryIterator<K, V>(namedCache.entrySet().iterator());
-    }
-
-    public NamedCache getNamedCache() {
-        return namedCache;
     }
 
     private void checkStatusStarted() {

@@ -53,13 +53,14 @@ public class CoherenceCacheTest {
     public void testUnwrap() {
         CoherenceCache cache = getCache().unwrap(CoherenceCache.class);
         assertEquals(CACHE_NAME, cache.getName());
+        NamedCache namedCache = getCache().unwrap(NamedCache.class);
+        assertEquals(CACHE_NAME, namedCache.getCacheName());
     }
 
     @Test
     public void testListener() throws Exception {
         Cache<Integer, String> cache = getCache();
-        NamedCache namedCache =
-                cache.unwrap(CoherenceCache.class).getNamedCache();
+        NamedCache namedCache = cache.unwrap(NamedCache.class);
         MapListener myListener = new MapListener() {
             @Override
             public void entryInserted(MapEvent evt) {
