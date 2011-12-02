@@ -26,7 +26,7 @@ import javax.cache.implementation.AbstractCacheConfiguration;
 import javax.cache.transaction.IsolationLevel;
 import javax.cache.transaction.Mode;
 
-public class CoherenceCacheConfiguration extends AbstractCacheConfiguration {
+public class CoherenceCacheConfiguration<K, V> extends AbstractCacheConfiguration {
 
     private CoherenceCacheConfiguration(boolean readThrough, boolean writeThrough,
                                         boolean storeByValue, boolean statisticsEnabled,
@@ -36,12 +36,12 @@ public class CoherenceCacheConfiguration extends AbstractCacheConfiguration {
     }
 
     @Override
-    public CacheLoader getCacheLoader() {
+    public CacheLoader<K, ? extends V> getCacheLoader() {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public CacheWriter getCacheWriter() {
+    public CacheWriter<? super K, ? super V> getCacheWriter() {
         throw new UnsupportedOperationException();
     }
 
