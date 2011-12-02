@@ -137,7 +137,7 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
     }
 
     @Override
-    public Future<Map<K, V>> loadAll(Collection<? extends K> keys) throws CacheException {
+    public Future<Map<K, ? extends V>> loadAll(Collection<? extends K> keys) throws CacheException {
         checkStatusStarted();
         if (keys == null) {
             throw new NullPointerException();
@@ -148,7 +148,8 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
         if (getCacheLoader() == null) {
             return null;
         }
-        FutureTask<Map<K, V>> task = new FutureTask<Map<K, V>>(new CoherenceCacheLoaderLoadAllCallable(namedCache, getCacheLoader(), keys));
+        Callable<Map<K, ? extends V>> callable = new CoherenceCacheLoaderLoadAllCallable<K, V>(namedCache, getCacheLoader(), keys);
+        FutureTask<Map<K, ? extends V>> task = new FutureTask<Map<K, ? extends V>>(callable);
         submit(task);
         return task;
     }
