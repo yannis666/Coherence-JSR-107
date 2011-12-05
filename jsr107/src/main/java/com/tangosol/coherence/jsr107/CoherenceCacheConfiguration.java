@@ -22,6 +22,7 @@ package com.tangosol.coherence.jsr107;
 
 import javax.cache.CacheLoader;
 import javax.cache.CacheWriter;
+import javax.cache.experimental.CacheBuilder;
 import javax.cache.implementation.AbstractCacheConfiguration;
 import javax.cache.transaction.IsolationLevel;
 import javax.cache.transaction.Mode;
@@ -42,6 +43,11 @@ public class CoherenceCacheConfiguration<K, V> extends AbstractCacheConfiguratio
 
     @Override
     public CacheWriter<? super K, ? super V> getCacheWriter() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public CacheBuilder createBuilderEXPERIMENTAL() {
         throw new UnsupportedOperationException();
     }
 

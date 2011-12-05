@@ -30,6 +30,7 @@ import javax.cache.CacheManager;
 import javax.cache.Caching;
 import javax.cache.OptionalFeature;
 import javax.cache.Status;
+import javax.cache.experimental.ConfigurationBuilder;
 import javax.cache.implementation.AbstractCacheManager;
 import javax.cache.implementation.DelegatingCacheBuilder;
 import java.util.ArrayList;
@@ -149,6 +150,16 @@ class CoherenceCacheManager extends AbstractCacheManager implements CacheManager
             return cls.cast(this);
         }
         throw new IllegalArgumentException();
+    }
+
+    @Override
+    public <K, V> ConfigurationBuilder<K, V> createConfigurationBuilderEXPERIMENTAL() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <K, V> javax.cache.experimental.CacheBuilder<K, V> getCacheBuilderEXPERIMENTAL() {
+        throw new UnsupportedOperationException();
     }
 
     private void addCacheInternal(Cache<?, ?> cache) throws CacheException {
