@@ -29,3 +29,4 @@ To run the TCK using the Coherence adapter you can use
       -Dimplementation-artifactId=coherence.jsr107 \
       -Dimplementation-version=0.1-SNAPSHOT \
       install
+
