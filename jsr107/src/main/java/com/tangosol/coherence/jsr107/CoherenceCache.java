@@ -43,7 +43,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
@@ -62,14 +61,12 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
     private CoherenceCache(NamedCache namedCache,
                            String cacheName,
                            String cacheManagerName,
-                           Set<Class<?>> immutableClasses,
                            ClassLoader classLoader,
                            CacheConfiguration configuration,
                            CacheLoader<K, ? extends V> cacheLoader,
                            CacheWriter<? super K, ? super V> cacheWriter) {
         super(cacheName,
             cacheManagerName,
-            immutableClasses,
             classLoader,
             configuration,
             cacheLoader,
@@ -518,17 +515,16 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
     static class Builder<K, V> extends AbstractCache.Builder<K, V> {
         private final ConfigurableCacheFactory ccf;
 
-        public Builder(String cacheName, String cacheManagerName, Set<Class<?>> immutableClasses,
+        public Builder(String cacheName, String cacheManagerName,
                        ClassLoader classLoader, ConfigurableCacheFactory ccf) {
-            this(cacheName, cacheManagerName, immutableClasses, classLoader, new CoherenceCacheConfiguration.Builder(), ccf);
+            this(cacheName, cacheManagerName, classLoader, new CoherenceCacheConfiguration.Builder(), ccf);
         }
 
         private Builder(String cacheName, String cacheManagerName,
-                        Set<Class<?>> immutableClasses,
                         ClassLoader classLoader,
                         CoherenceCacheConfiguration.Builder configurationBuilder,
                         ConfigurableCacheFactory ccf) {
-            super(cacheName, cacheManagerName, immutableClasses, classLoader, configurationBuilder);
+            super(cacheName, cacheManagerName, classLoader, configurationBuilder);
             if (ccf == null) {
                 throw new NullPointerException("ConfigurableCacheFactory");
             }
@@ -539,7 +535,7 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
         public CoherenceCache<K, V> build() {
             CacheConfiguration configuration = createCacheConfiguration();
             NamedCache namedCache = ccf.ensureCache(cacheName, classLoader);
-            return new CoherenceCache<K, V>(namedCache, cacheName, cacheManagerName, immutableClasses, classLoader,
+            return new CoherenceCache<K, V>(namedCache, cacheName, cacheManagerName, classLoader,
                     configuration, cacheLoader, cacheWriter);
         }
 

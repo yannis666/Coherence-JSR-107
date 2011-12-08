@@ -175,7 +175,7 @@ class CoherenceCacheManager extends AbstractCacheManager implements CacheManager
 
     private class CoherenceCacheBuilder<K, V> extends DelegatingCacheBuilder<K, V> {
         public CoherenceCacheBuilder(String cacheName) {
-            super(new CoherenceCache.Builder<K, V>(cacheName, getName(), getImmutableClasses(), getClassLoader(), dccf));
+            super(new CoherenceCache.Builder<K, V>(cacheName, getName(), getClassLoader(), dccf));
         }
 
         @Override
