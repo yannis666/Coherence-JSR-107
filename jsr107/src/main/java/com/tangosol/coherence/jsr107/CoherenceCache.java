@@ -22,9 +22,13 @@ package com.tangosol.coherence.jsr107;
 
 import com.tangosol.coherence.jsr107.processors.ConverterProcessor;
 import com.tangosol.coherence.jsr107.processors.ProcessorFactory;
+import com.tangosol.net.BackingMapManagerContext;
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
+import com.tangosol.net.PartitionedService;
+import com.tangosol.net.partition.KeyPartitioningStrategy;
 import com.tangosol.util.Binary;
+import com.tangosol.util.Converter;
 import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.InvocableMap;
 import com.tangosol.util.LiteMap;
@@ -41,6 +45,7 @@ import javax.cache.event.NotificationScope;
 import javax.cache.implementation.AbstractCache;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -73,7 +78,7 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
             cacheWriter);
         this.namedCache = namedCache;
         this.statistics = new CoherenceCacheStatistics(cacheName);
-        this.processorFactory = new ProcessorFactory<K, V>(classLoader);
+        this.processorFactory = new ProcessorFactory<K, V>(namedCache);
         status = Status.UNINITIALISED;
     }
 
@@ -83,6 +88,7 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
         if (key == null) {
             throw new NullPointerException();
         }
+        System.out.println(namedCache.size());
         try {
             return (V) fromBinary(invokeWithCacheLoader(key, processorFactory.getGetProcessor()));
         } catch (WrapperException e) {
@@ -201,8 +207,59 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
         if (map.containsValue(null)) {
             throw new NullPointerException();
         }
-        //TODO: how to do with entry processors?
-        namedCache.putAll(map);
+        //namedCache.putAll(map);
+        putAllWithEntryProcessor(map);
+        System.out.println(namedCache.size());
+    }
+
+    private void putAllWithEntryProcessor(Map<? extends K, ? extends V> map) {
+        BackingMapManagerContext context = namedCache.getCacheService().getBackingMapManager().getContext();
+        Converter keyToInternalConverter = context.getKeyToInternalConverter();
+        Converter valueToInternalConverter = context.getValueToInternalConverter();
+        Converter keyFromInternalConverter = context.getKeyFromInternalConverter();
+
+        HashMap<Integer, Map<Binary, Binary>> partitioned = new HashMap<Integer, Map<Binary, Binary>>();
+        for (Map.Entry<? extends K,? extends V> entry : map.entrySet()) {
+            Binary bKey = (Binary) keyToInternalConverter.convert(entry.getKey());
+            Binary bValue = (Binary) valueToInternalConverter.convert(entry.getValue());
+            int partition = context.getKeyPartition(bKey);
+            Map<Binary, Binary> partitionMap = partitioned.get(partition);
+            if (partitionMap == null) {
+                partitionMap = new HashMap<Binary, Binary>();
+                partitioned.put(partition, partitionMap);
+            }
+            partitionMap.put(bKey, bValue);
+        }
+        for (Map.Entry<Integer, Map<Binary, Binary>> entry : partitioned.entrySet()) {
+            int partitionId = entry.getKey();
+            Object partitionKey = keyFromInternalConverter.convert(entry.getValue().keySet().iterator().next()); // any key will do
+            //TODO: I remember mention of some sort of "pseudo key" for a partition; if so how to get?
+            namedCache.invoke(partitionKey, processorFactory.getPutAllProcessor(entry.getValue()));
+        }
+    }
+
+    private void putAllWithEntryProcessor1(Map<? extends K, ? extends V> map) {
+        PartitionedService ps = (PartitionedService) namedCache.getCacheService();
+        KeyPartitioningStrategy keyPartitioningStrategy = ps.getKeyPartitioningStrategy();
+
+        HashMap<Integer, Map<K, V>> partitioned = new HashMap<Integer, Map<K, V>>();
+        for (Map.Entry<? extends K,? extends V> entry : map.entrySet()) {
+            K key = entry.getKey();
+            V value = entry.getValue();
+            int partition = keyPartitioningStrategy.getKeyPartition(key);
+            Map<K, V> partitionMap = partitioned.get(partition);
+            if (partitionMap == null) {
+                partitionMap = new HashMap<K, V>();
+                partitioned.put(partition, partitionMap);
+            }
+            partitionMap.put(key, value);
+        }
+        for (Map.Entry<Integer, Map<K, V>> entry : partitioned.entrySet()) {
+            int partitionId = entry.getKey();
+            Object partitionKey = entry.getValue().keySet().iterator().next(); // any key will do
+            //TODO: I remember mention of some sort of "pseudo key" for a partition; if so how to get?
+            namedCache.invoke(partitionKey, processorFactory.getPutAllProcessor1(entry.getValue()));
+        }
     }
 
     @Override

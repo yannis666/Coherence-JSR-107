@@ -20,22 +20,24 @@
  */
 package com.tangosol.coherence.jsr107.processors;
 
-import com.tangosol.io.DefaultSerializer;
+import com.tangosol.net.BackingMapManagerContext;
+import com.tangosol.net.NamedCache;
 import com.tangosol.util.Binary;
-import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.InvocableMap;
 
 import javax.cache.CacheLoader;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author ycosmado
  * @since 1.0
  */
 public class ProcessorFactory<K, V> {
-    private final DefaultSerializer serializer;
+    private final BackingMapManagerContext context;
 
-    public ProcessorFactory(ClassLoader classLoader) {
-        serializer = new DefaultSerializer(classLoader);
+    public ProcessorFactory(NamedCache namedCache) {
+        this.context = namedCache.getCacheService().getBackingMapManager().getContext();
     }
 
     public InvocableMap.EntryProcessor getGetProcessor() {
@@ -47,15 +49,15 @@ public class ProcessorFactory<K, V> {
     }
 
     public InvocableMap.EntryProcessor getPutProcessor(V value) {
-        return new PutProcessor(toBinary(value));
+        return new PutProcessor(valueToBinary(value));
     }
 
     public InvocableMap.EntryProcessor getGetAndPutProcessor(V value) {
-        return new GetAndPutProcessor(toBinary(value));
+        return new GetAndPutProcessor(valueToBinary(value));
     }
 
     public InvocableMap.EntryProcessor getPutIfAbsentProcessor(V value) {
-        return new PutIfAbsentProcessor(toBinary(value));
+        return new PutIfAbsentProcessor(valueToBinary(value));
     }
 
     public InvocableMap.EntryProcessor getRemoveProcessor() {
@@ -63,7 +65,7 @@ public class ProcessorFactory<K, V> {
     }
 
     public InvocableMap.EntryProcessor getRemove2Processor(V value) {
-        return new Remove2Processor(toBinary(value));
+        return new Remove2Processor(valueToBinary(value));
     }
 
     public InvocableMap.EntryProcessor getGetAndRemoveProcessor() {
@@ -71,22 +73,38 @@ public class ProcessorFactory<K, V> {
     }
 
     public InvocableMap.EntryProcessor getReplace3Processor(V oldValue, V newValue) {
-        return new Replace3Processor(toBinary(oldValue), toBinary(newValue));
+        return new Replace3Processor(valueToBinary(oldValue), valueToBinary(newValue));
     }
 
     public InvocableMap.EntryProcessor getReplace2Processor(V value) {
-        return new Replace2Processor(toBinary(value));
+        return new Replace2Processor(valueToBinary(value));
     }
 
     public InvocableMap.EntryProcessor getGetAndReplaceProcessor(V value) {
-        return new GetAndReplaceProcessor(toBinary(value));
+        return new GetAndReplaceProcessor(valueToBinary(value));
+    }
+
+    public InvocableMap.EntryProcessor getPutAllProcessor(Map<Binary, Binary> map) {
+        return new PutAllProcessor(map);
+    }
+
+    public InvocableMap.EntryProcessor getPutAllProcessor1(Map<K, V> map) {
+        Map<Binary, Binary> binaryMap = new HashMap<Binary, Binary>(map.size());
+        for (Map.Entry<K,V> entry : map.entrySet()) {
+            binaryMap.put(keyToBinary(entry.getKey()), valueToBinary(entry.getValue()));
+        }
+        return new PutAllProcessor(binaryMap);
     }
 
     public InvocableMap.EntryProcessor getCacheLoaderProcessor(InvocableMap.EntryProcessor processor, CacheLoader<K, ? extends V> cacheLoader) {
         return new CacheLoaderProcessor<K, V>(processor, cacheLoader);
     }
 
-    private Binary toBinary(Object o) {
-        return ExternalizableHelper.toBinary(o, serializer);
+    private Binary valueToBinary(V o) {
+        return (Binary)context.getValueToInternalConverter().convert(o);
+    }
+
+    private Binary keyToBinary(K o) {
+        return (Binary)context.getKeyToInternalConverter().convert(o);
     }
 }
