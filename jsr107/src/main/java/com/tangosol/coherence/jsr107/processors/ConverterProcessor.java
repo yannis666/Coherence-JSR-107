@@ -39,7 +39,7 @@ public class ConverterProcessor<K, V> implements InvocableMap.EntryProcessor {
 
     @Override
     public Object process(InvocableMap.Entry entry) {
-        return processor.process(new ConverterEntry(entry));
+        return processor.process(new ConverterEntry<K, V>(entry));
     }
 
     @Override

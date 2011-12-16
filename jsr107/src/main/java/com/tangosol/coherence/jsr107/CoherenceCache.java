@@ -48,6 +48,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
@@ -67,7 +68,7 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
                            String cacheName,
                            String cacheManagerName,
                            ClassLoader classLoader,
-                           CacheConfiguration configuration,
+                           CacheConfiguration<K, V> configuration,
                            CacheLoader<K, ? extends V> cacheLoader,
                            CacheWriter<? super K, ? super V> cacheWriter) {
         super(cacheName,
@@ -97,7 +98,7 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
     }
 
     @Override
-    public Map<K, V> getAll(Collection<? extends K> keys) throws CacheException {
+    public Map<K, V> getAll(Set<? extends K> keys) throws CacheException {
         checkStatusStarted();
         if (keys == null) {
             throw new NullPointerException();
@@ -106,7 +107,7 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
             throw new NullPointerException();
         }
         try {
-            return fromBinary((Map<K, Binary>) invokeWithCacheLoader(keys, processorFactory.getGetProcessor()));
+            return fromBinary(invokeWithCacheLoader(keys, processorFactory.getGetProcessor()));
         } catch (WrapperException e) {
             throw thunkException(e);
         }
@@ -140,7 +141,7 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
     }
 
     @Override
-    public Future<Map<K, ? extends V>> loadAll(Collection<? extends K> keys) throws CacheException {
+    public Future<Map<K, ? extends V>> loadAll(Set<? extends K> keys) throws CacheException {
         checkStatusStarted();
         if (keys == null) {
             throw new NullPointerException();
@@ -491,12 +492,12 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
         return (V) ret;
     }
 
-    private Map invokeWithCacheLoader(Collection<? extends K> keys, InvocableMap.EntryProcessor processor) {
+    private Map<K, Binary> invokeWithCacheLoader(Collection<? extends K> keys, InvocableMap.EntryProcessor processor) {
         CacheLoader<K, ? extends V> cacheLoader = getCacheLoader();
         Object ret = cacheLoader == null ?
             namedCache.invokeAll(keys, processor) :
             namedCache.invokeAll(keys, processorFactory.getCacheLoaderProcessor(processor, cacheLoader));
-        return (Map) ret;
+        return (Map<K, Binary>) ret;
     }
 
     private Object fromBinary(Object o) {
