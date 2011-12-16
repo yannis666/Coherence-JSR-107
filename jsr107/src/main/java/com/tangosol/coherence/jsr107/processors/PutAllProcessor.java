@@ -20,10 +20,8 @@
  */
 package com.tangosol.coherence.jsr107.processors;
 
-import com.tangosol.io.Serializer;
 import com.tangosol.util.Binary;
 import com.tangosol.util.BinaryEntry;
-import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.InvocableMap;
 import com.tangosol.util.ObservableMap;
 
@@ -46,14 +44,6 @@ public class PutAllProcessor implements InvocableMap.EntryProcessor {
         BinaryEntry bEntry = (BinaryEntry) entry;
         ObservableMap backingMap = bEntry.getBackingMap();
         backingMap.putAll(value);
-        Serializer serializer = bEntry.getSerializer();
-        for(Map.Entry<Binary, Binary> entry1 : value.entrySet()) {
-            Binary bKey = entry1.getKey();
-            Binary bValue = entry1.getValue();
-            Object key = ExternalizableHelper.fromBinary(bKey, serializer);
-            Object value = ExternalizableHelper.fromBinary(bValue, serializer);
-            System.out.println("key="+key+" value="+value);
-        }
         return null;
     }
 

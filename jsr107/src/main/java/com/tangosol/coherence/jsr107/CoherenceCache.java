@@ -89,7 +89,6 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
         if (key == null) {
             throw new NullPointerException();
         }
-        System.out.println(namedCache.size());
         try {
             return (V) fromBinary(invokeWithCacheLoader(key, processorFactory.getGetProcessor()));
         } catch (WrapperException e) {
@@ -210,7 +209,6 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
         }
         //namedCache.putAll(map);
         putAllWithEntryProcessor(map);
-        System.out.println(namedCache.size());
     }
 
     private void putAllWithEntryProcessor(Map<? extends K, ? extends V> map) {
