@@ -20,6 +20,11 @@
  */
 package com.tangosol.coherence.jsr107;
 
+import com.tangosol.net.DefaultConfigurableCacheFactory;
+import com.tangosol.net.NamedCache;
+import com.tangosol.net.cache.LocalCache;
+import com.tangosol.net.cache.SimpleCacheStatistics;
+
 import javax.cache.CacheStatistics;
 import javax.cache.Status;
 import java.util.Date;
@@ -30,9 +35,14 @@ import java.util.Date;
  */
 public class CoherenceCacheStatistics implements CacheStatistics {
     private final String name;
+    private final SimpleCacheStatistics statistics;
 
-    CoherenceCacheStatistics(String name) {
-        this.name = name;
+    CoherenceCacheStatistics(NamedCache namedCache) {
+        this.name = namedCache.getCacheName();
+        DefaultConfigurableCacheFactory.Manager backingMapManager = (DefaultConfigurableCacheFactory.Manager) namedCache.getCacheService().getBackingMapManager();
+        LocalCache backingMap = (LocalCache) backingMapManager.getBackingMap(namedCache.getCacheName());
+        statistics = (SimpleCacheStatistics) backingMap.getCacheStatistics();
+        System.out.println("llll");
     }
 
     @Override

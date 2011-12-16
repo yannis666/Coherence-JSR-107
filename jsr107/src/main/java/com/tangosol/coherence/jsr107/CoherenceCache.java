@@ -78,7 +78,7 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
             cacheLoader,
             cacheWriter);
         this.namedCache = namedCache;
-        this.statistics = new CoherenceCacheStatistics(cacheName);
+        this.statistics = new CoherenceCacheStatistics(namedCache);
         this.processorFactory = new ProcessorFactory<K, V>(namedCache);
         status = Status.UNINITIALISED;
     }
