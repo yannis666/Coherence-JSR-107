@@ -45,15 +45,15 @@ public class CoherenceCacheStatistics implements CacheStatistics {
         System.out.println("llll");
     }
 
-    @Override
-    public String getName() {
-        return name;
-    }
-
-    @Override
-    public Status getStatus() {
-        throw new UnsupportedOperationException();
-    }
+//    @Override
+//    public String getName() {
+//        return name;
+//    }
+//
+//    @Override
+//    public Status getStatus() {
+//        throw new UnsupportedOperationException();
+//    }
 
     @Override
     public void clearStatistics() {

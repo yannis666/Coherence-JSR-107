@@ -37,6 +37,7 @@ import com.tangosol.util.WrapperException;
 import javax.cache.CacheConfiguration;
 import javax.cache.CacheException;
 import javax.cache.CacheLoader;
+import javax.cache.mbeans.CacheMXBean;
 import javax.cache.CacheStatistics;
 import javax.cache.CacheWriter;
 import javax.cache.Status;
@@ -463,6 +464,11 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
     public Iterator<Entry<K, V>> iterator() {
         checkStatusStarted();
         return new EntryIterator<K, V>(namedCache.entrySet().iterator());
+    }
+
+    @Override
+    public CacheMXBean getMBean() {
+        throw new UnsupportedOperationException();
     }
 
     private void checkStatusStarted() {
