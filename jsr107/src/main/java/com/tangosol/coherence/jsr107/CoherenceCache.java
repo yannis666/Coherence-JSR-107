@@ -37,6 +37,7 @@ import com.tangosol.util.WrapperException;
 import javax.cache.CacheConfiguration;
 import javax.cache.CacheException;
 import javax.cache.CacheLoader;
+import javax.cache.implementation.DelegatingCacheMXBean;
 import javax.cache.mbeans.CacheMXBean;
 import javax.cache.CacheStatistics;
 import javax.cache.CacheWriter;
@@ -63,6 +64,7 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
     private final NamedCache namedCache;
     private volatile Status status;
     private final CoherenceCacheStatistics statistics;
+    private final CacheMXBean mBean;
     private final ProcessorFactory<K, V> processorFactory;
 
     private CoherenceCache(NamedCache namedCache,
@@ -80,6 +82,7 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
             cacheWriter);
         this.namedCache = namedCache;
         this.statistics = new CoherenceCacheStatistics(namedCache);
+        mBean = new DelegatingCacheMXBean<K, V>(this);
         this.processorFactory = new ProcessorFactory<K, V>(namedCache);
         status = Status.UNINITIALISED;
     }
@@ -468,7 +471,7 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
 
     @Override
     public CacheMXBean getMBean() {
-        throw new UnsupportedOperationException();
+        return mBean;
     }
 
     private void checkStatusStarted() {

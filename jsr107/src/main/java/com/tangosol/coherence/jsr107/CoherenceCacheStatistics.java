@@ -42,18 +42,7 @@ public class CoherenceCacheStatistics implements CacheStatistics {
         DefaultConfigurableCacheFactory.Manager backingMapManager = (DefaultConfigurableCacheFactory.Manager) namedCache.getCacheService().getBackingMapManager();
         LocalCache backingMap = (LocalCache) backingMapManager.getBackingMap(namedCache.getCacheName());
         statistics = (SimpleCacheStatistics) backingMap.getCacheStatistics();
-        System.out.println("llll");
     }
-
-//    @Override
-//    public String getName() {
-//        return name;
-//    }
-//
-//    @Override
-//    public Status getStatus() {
-//        throw new UnsupportedOperationException();
-//    }
 
     @Override
     public void clearStatistics() {
