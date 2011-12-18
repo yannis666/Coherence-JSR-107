@@ -50,7 +50,7 @@ public class CoherenceCacheStatistics implements CacheStatistics {
     }
 
     @Override
-    public Date statsAccumulatingFrom() {
+    public Date getStartAccumulationDate() {
         throw new UnsupportedOperationException();
     }
 
