@@ -94,10 +94,23 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
             throw new NullPointerException();
         }
         try {
-            return (V) fromBinary(invokeWithCacheLoader(key, processorFactory.getGetProcessor()));
+            long statisticsStart = getStatisticsStartMillis();
+            V value = (V) fromBinary(invokeWithCacheLoader(key, processorFactory.getGetProcessor()));
+            if (statisticsStart != 0 && getConfiguration().isStatisticsEnabled()) {
+                if (value == null) {
+                    statistics.registerMisses(1, statisticsStart);
+                } else {
+                    statistics.registerHits(1, statisticsStart);
+                }
+            }
+            return value;
         } catch (WrapperException e) {
             throw thunkException(e);
         }
+    }
+
+    private long getStatisticsStartMillis() {
+        return getConfiguration().isStatisticsEnabled() ? statistics.currentTimeMillis() : 0;
     }
 
     @Override
@@ -110,7 +123,19 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
             throw new NullPointerException();
         }
         try {
-            return fromBinary(invokeWithCacheLoader(keys, processorFactory.getGetProcessor()));
+            long statisticsStart = getStatisticsStartMillis();
+            Map<K, V> map = fromBinary(invokeWithCacheLoader(keys, processorFactory.getGetProcessor()));
+            if (statisticsStart != 0 && getConfiguration().isStatisticsEnabled()) {
+                int hits = map.size();
+                int misses = keys.size() - hits;
+                if (hits > 0) {
+                    statistics.registerHits(hits, statisticsStart);
+                }
+                if (misses > 0) {
+                    statistics.registerMisses(misses, statisticsStart);
+                }
+            }
+            return map;
         } catch (WrapperException e) {
             throw thunkException(e);
         }
@@ -123,7 +148,16 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
             throw new NullPointerException();
         }
         try {
-            return (Boolean) namedCache.invoke(key, processorFactory.getContainsKeyProcessor());
+            long statisticsStart = getStatisticsStartMillis();
+            Boolean ret =  (Boolean) namedCache.invoke(key, processorFactory.getContainsKeyProcessor());
+            if (statisticsStart != 0 && getConfiguration().isStatisticsEnabled()) {
+                if (ret) {
+                    statistics.registerHits(1, statisticsStart);
+                } else {
+                    statistics.registerMisses(1, statisticsStart);
+                }
+            }
+            return ret;
         } catch (WrapperException e) {
             throw thunkException(e);
         }

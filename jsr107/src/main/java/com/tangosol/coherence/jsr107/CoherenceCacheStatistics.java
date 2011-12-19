@@ -26,86 +26,113 @@ import com.tangosol.net.cache.LocalCache;
 import com.tangosol.net.cache.SimpleCacheStatistics;
 
 import javax.cache.CacheStatistics;
-import javax.cache.Status;
 import java.util.Date;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * @author ycosmado
  * @since 1.0
  */
 public class CoherenceCacheStatistics implements CacheStatistics {
-    private final String name;
     private final SimpleCacheStatistics statistics;
+    private final AtomicLong startTime = new AtomicLong();
+    private final AtomicLong  removeCount = new AtomicLong();
+    private final AtomicLong  removeMillis = new AtomicLong();
 
     CoherenceCacheStatistics(NamedCache namedCache) {
-        this.name = namedCache.getCacheName();
         DefaultConfigurableCacheFactory.Manager backingMapManager = (DefaultConfigurableCacheFactory.Manager) namedCache.getCacheService().getBackingMapManager();
         LocalCache backingMap = (LocalCache) backingMapManager.getBackingMap(namedCache.getCacheName());
         statistics = (SimpleCacheStatistics) backingMap.getCacheStatistics();
+        statistics.resetHitStatistics();
     }
 
     @Override
     public void clearStatistics() {
-        throw new UnsupportedOperationException();
+        statistics.resetHitStatistics();
+        startTime.set(SimpleCacheStatistics.getSafeTimeMillis());
+        removeCount.set(0);
+        removeMillis.set(0);
     }
 
     @Override
     public Date getStartAccumulationDate() {
-        throw new UnsupportedOperationException();
+        return new Date(startTime.get());
     }
 
     @Override
     public long getCacheHits() {
-        throw new UnsupportedOperationException();
+        return statistics.getCacheHits();
     }
 
     @Override
     public float getCacheHitPercentage() {
-        throw new UnsupportedOperationException();
+        float misses = statistics.getCacheHits();
+        float gets = statistics.getTotalGets();
+        return gets == 0 ? 0 : (misses/gets);
     }
 
     @Override
     public long getCacheMisses() {
-        throw new UnsupportedOperationException();
+        return statistics.getCacheMisses();
     }
 
     @Override
     public float getCacheMissPercentage() {
-        throw new UnsupportedOperationException();
+        float misses = statistics.getCacheMisses();
+        float gets = statistics.getTotalGets();
+        return gets == 0 ? 0 : (misses/gets);
     }
 
     @Override
     public long getCacheGets() {
-        throw new UnsupportedOperationException();
+        return statistics.getTotalGets();
     }
 
     @Override
     public long getCachePuts() {
-        throw new UnsupportedOperationException();
+        return statistics.getTotalPuts();
     }
 
     @Override
     public long getCacheRemovals() {
-        throw new UnsupportedOperationException();
+        return removeCount.get();
     }
 
     @Override
     public long getCacheEvictions() {
-        throw new UnsupportedOperationException();
+        return statistics.getCachePrunes();
     }
 
     @Override
     public float getAverageGetMillis() {
-        throw new UnsupportedOperationException();
+        return (float) statistics.getAverageGetMillis();
     }
 
     @Override
     public float getAveragePutMillis() {
-        throw new UnsupportedOperationException();
+        return (float) statistics.getAveragePutMillis();
     }
 
     @Override
     public float getAverageRemoveMillis() {
-        throw new UnsupportedOperationException();
+        long count = removeCount.get();
+        if (count == 0) {
+            return 0;
+        } else {
+            float total = removeMillis.get();
+            return total/count;
+        }
+    }
+    
+    public void registerHits(int count, long startMillis) {
+        statistics.registerHits(count, startMillis);
+    }
+
+    public void registerMisses(int count, long startMillis) {
+        statistics.registerMisses(count, startMillis);
+    }
+
+    public long currentTimeMillis() {
+        return SimpleCacheStatistics.getSafeTimeMillis();
     }
 }
