@@ -43,7 +43,6 @@ import javax.cache.CacheStatistics;
 import javax.cache.CacheWriter;
 import javax.cache.Status;
 import javax.cache.event.CacheEntryListener;
-import javax.cache.event.NotificationScope;
 import javax.cache.implementation.AbstractCache;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -431,7 +430,7 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
     }
 
     @Override
-    public boolean registerCacheEntryListener(CacheEntryListener<? super K, ? super V> cacheEntryListener, NotificationScope scope, boolean synchronous) {
+    public boolean registerCacheEntryListener(CacheEntryListener<? super K, ? super V> cacheEntryListener, boolean synchronous) {
         if (TEMPORARY_YACHACK_TCK_FREEK) {
             return false;
         }
@@ -654,7 +653,7 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
         }
 
         @Override
-        public Builder<K, V> registerCacheEntryListener(CacheEntryListener<K, V> listener, NotificationScope scope, boolean synchronous) {
+        public Builder<K, V> registerCacheEntryListener(CacheEntryListener<K, V> listener, boolean synchronous) {
             throw new UnsupportedOperationException();
         }
     }
