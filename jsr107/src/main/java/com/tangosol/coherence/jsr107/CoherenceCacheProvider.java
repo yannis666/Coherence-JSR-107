@@ -20,13 +20,19 @@
  */
 package com.tangosol.coherence.jsr107;
 
-import javax.cache.CacheManager;
-import javax.cache.implementation.AbstractCachingProvider;
+import javax.cache.OptionalFeature;
+import javax.cache.spi.CacheManagerFactory;
+import javax.cache.spi.CachingProvider;
 
-public class CoherenceCacheProvider extends AbstractCachingProvider {
+public class CoherenceCacheProvider implements CachingProvider {
 
     @Override
-    public CacheManager createCacheManager(ClassLoader classLoader, String name) {
-        return new CoherenceCacheManager(classLoader, name);
+    public CacheManagerFactory getCacheManagerFactory() {
+        return CoherenceCacheManagerFactory.getInstance();
+    }
+
+    @Override
+    public boolean isSupported(OptionalFeature optionalFeature) {
+        return false;
     }
 }

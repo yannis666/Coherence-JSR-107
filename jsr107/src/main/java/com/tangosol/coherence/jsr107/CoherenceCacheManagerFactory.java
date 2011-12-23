@@ -20,31 +20,30 @@
  */
 package com.tangosol.coherence.jsr107;
 
-import org.junit.Test;
-
 import javax.cache.CacheManager;
+import javax.cache.implementation.AbstractCacheManagerFactory;
 
-import static org.junit.Assert.assertEquals;
+public final class CoherenceCacheManagerFactory extends AbstractCacheManagerFactory {
+    private static final CoherenceCacheManagerFactory INSTANCE = new CoherenceCacheManagerFactory();
 
-public class CoherenceCacheManagerTest {
-
-    private static final String CACHE_MANAGER_NAME = "JSR107TestCacheManager";
-
-    @Test
-    public void testGetName() {
-        assertEquals(CACHE_MANAGER_NAME, getCacheManager().getName());
+    private CoherenceCacheManagerFactory() {
     }
 
-    // Utilities --------------------------------------------------
-    static ClassLoader getClassLoader() {
+    @Override
+    protected CacheManager createCacheManager(ClassLoader classLoader, String name) {
+        return new CoherenceCacheManager(classLoader, name);
+    }
+
+    @Override
+    protected ClassLoader getDefaultClassLoader() {
         return Thread.currentThread().getContextClassLoader();
     }
 
-    static CacheManager getCacheManager() {
-        return getCacheManager(getClassLoader(), CACHE_MANAGER_NAME);
-    }
-
-    static CacheManager getCacheManager(ClassLoader classLoader, String cacheName) {
-        return CoherenceCacheProviderTest.getCachingProvider().createCacheManager(classLoader, cacheName);
+    /**
+     * Get the singleton instance
+     * @return the singleton instance
+     */
+    public static CoherenceCacheManagerFactory getInstance() {
+        return INSTANCE;
     }
 }

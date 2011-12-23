@@ -22,7 +22,6 @@ package com.tangosol.coherence.jsr107;
 
 import org.junit.Test;
 
-import javax.cache.CacheManager;
 import javax.cache.OptionalFeature;
 import javax.cache.spi.CachingProvider;
 
@@ -36,18 +35,6 @@ public class CoherenceCacheProviderTest {
         Class<CoherenceCacheProvider> clazz = CoherenceCacheProvider.class;
         CachingProvider provider = clazz.newInstance();
         assertNotNull(provider);
-    }
-
-    @Test
-    public void testCreateCacheManagerNullCP() {
-        CachingProvider cachingProvider = getCachingProvider();
-        assertNotNull(cachingProvider.createCacheManager(Thread.currentThread().getContextClassLoader(), "myCache"));
-    }
-
-    @Test
-    public void testGetDefaultClassLoader() {
-        CachingProvider cacheProvider = getCachingProvider();
-        assertNotNull(cacheProvider.getDefaultClassLoader());
     }
 
     @Test
