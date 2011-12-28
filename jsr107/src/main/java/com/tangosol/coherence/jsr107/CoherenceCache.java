@@ -408,7 +408,7 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
     }
 
     @Override
-    public void removeAll(Collection<? extends K> keys) throws CacheException {
+    public void removeAll(Set<? extends K> keys) throws CacheException {
         checkStatusStarted();
         if (keys == null) {
             throw new NullPointerException();
