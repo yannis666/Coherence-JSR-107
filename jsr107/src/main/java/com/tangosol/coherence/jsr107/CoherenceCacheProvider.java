@@ -24,6 +24,10 @@ import javax.cache.CacheManagerFactory;
 import javax.cache.OptionalFeature;
 import javax.cache.spi.CachingProvider;
 
+/**
+ * @author ycosmado
+ * @since 1.0
+ */
 public class CoherenceCacheProvider implements CachingProvider {
 
     @Override
