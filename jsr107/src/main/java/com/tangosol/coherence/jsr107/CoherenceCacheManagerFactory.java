@@ -23,6 +23,10 @@ package com.tangosol.coherence.jsr107;
 import javax.cache.CacheManager;
 import javax.cache.implementation.AbstractCacheManagerFactory;
 
+/**
+ * @author ycosmado
+ * @since 1.0
+ */
 public final class CoherenceCacheManagerFactory extends AbstractCacheManagerFactory {
     private static final CoherenceCacheManagerFactory INSTANCE = new CoherenceCacheManagerFactory();
 

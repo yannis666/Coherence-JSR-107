@@ -26,6 +26,10 @@ import javax.cache.implementation.AbstractCacheConfiguration;
 import javax.cache.transaction.IsolationLevel;
 import javax.cache.transaction.Mode;
 
+/**
+ * @author ycosmado
+ * @since 1.0
+ */
 public class CoherenceCacheConfiguration<K, V> extends AbstractCacheConfiguration {
 
     private CoherenceCacheConfiguration(boolean readThrough, boolean writeThrough,
