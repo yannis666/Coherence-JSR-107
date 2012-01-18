@@ -13,5 +13,6 @@
         <module>RI</module>
         <module>jsr107tck</module>
         <module>Coherence-JSR-107</module>
+        <module>AcmeCache</module>
     </modules>
 </project>
