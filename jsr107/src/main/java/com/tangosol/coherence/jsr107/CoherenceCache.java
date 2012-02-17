@@ -41,7 +41,6 @@ import javax.cache.CacheStatistics;
 import javax.cache.CacheWriter;
 import javax.cache.Status;
 import javax.cache.event.CacheEntryListener;
-import javax.cache.event.Filter;
 import javax.cache.implementation.AbstractCache;
 import javax.cache.implementation.DelegatingCacheMXBean;
 import javax.cache.mbeans.CacheMXBean;
@@ -431,7 +430,7 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
     }
 
     @Override
-    public boolean registerCacheEntryListener(CacheEntryListener<? super K, ? super V> cacheEntryListener, Filter filter) {
+    public boolean registerCacheEntryListener(CacheEntryListener<? super K, ? super V> cacheEntryListener) {
         if (TEMPORARY_YACHACK_TCK_FREEK) {
             return false;
         }
@@ -654,7 +653,7 @@ public class CoherenceCache<K, V> extends AbstractCache<K, V> {
         }
 
         @Override
-        public Builder<K, V> registerCacheEntryListener(CacheEntryListener<K, V> listener, Filter filter) {
+        public Builder<K, V> registerCacheEntryListener(CacheEntryListener<K, V> listener) {
             throw new UnsupportedOperationException();
         }
     }
