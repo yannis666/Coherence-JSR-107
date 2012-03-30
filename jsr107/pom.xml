@@ -4,7 +4,7 @@
 
     <groupId>oracle</groupId>
     <artifactId>coherence.jsr107</artifactId>
-    <version>0.6-SNAPSHOT</version>
+    <version>0.1-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>Coherence JSR 107</name>
