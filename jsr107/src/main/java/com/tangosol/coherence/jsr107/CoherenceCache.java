@@ -33,6 +33,8 @@ import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.InvocableMap;
 import com.tangosol.util.LiteMap;
 import com.tangosol.util.WrapperException;
+import org.jsr107.ri.AbstractCache;
+import org.jsr107.ri.DelegatingCacheMXBean;
 
 import javax.cache.CacheConfiguration;
 import javax.cache.CacheException;
@@ -41,8 +43,6 @@ import javax.cache.CacheStatistics;
 import javax.cache.CacheWriter;
 import javax.cache.Status;
 import javax.cache.event.CacheEntryListener;
-import javax.cache.implementation.AbstractCache;
-import javax.cache.implementation.DelegatingCacheMXBean;
 import javax.cache.mbeans.CacheMXBean;
 import java.util.ArrayList;
 import java.util.Collection;

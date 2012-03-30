@@ -20,8 +20,9 @@
  */
 package com.tangosol.coherence.jsr107;
 
+import org.jsr107.ri.AbstractCacheManagerFactory;
+
 import javax.cache.CacheManager;
-import javax.cache.implementation.AbstractCacheManagerFactory;
 
 /**
  * @author ycosmado

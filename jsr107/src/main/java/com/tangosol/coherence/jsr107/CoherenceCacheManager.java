@@ -22,6 +22,8 @@ package com.tangosol.coherence.jsr107;
 
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.DefaultConfigurableCacheFactory;
+import org.jsr107.ri.AbstractCacheManager;
+import org.jsr107.ri.DelegatingCacheBuilder;
 
 import javax.cache.Cache;
 import javax.cache.CacheBuilder;
@@ -30,8 +32,6 @@ import javax.cache.CacheManager;
 import javax.cache.Caching;
 import javax.cache.OptionalFeature;
 import javax.cache.Status;
-import javax.cache.implementation.AbstractCacheManager;
-import javax.cache.implementation.DelegatingCacheBuilder;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;

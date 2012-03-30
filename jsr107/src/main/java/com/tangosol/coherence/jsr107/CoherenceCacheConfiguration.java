@@ -20,9 +20,10 @@
  */
 package com.tangosol.coherence.jsr107;
 
+import org.jsr107.ri.AbstractCacheConfiguration;
+
 import javax.cache.CacheLoader;
 import javax.cache.CacheWriter;
-import javax.cache.implementation.AbstractCacheConfiguration;
 import javax.cache.transaction.IsolationLevel;
 import javax.cache.transaction.Mode;
 
