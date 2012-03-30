@@ -31,6 +31,6 @@ To run the TCK using the Coherence adapter you can use
     mvn \
       -Dimplementation-groupId=oracle \
       -Dimplementation-artifactId=coherence.jsr107 \
-      -Dimplementation-version=0.1-SNAPSHOT \
+      -Dimplementation-version=0.6-SNAPSHOT \
       install
 

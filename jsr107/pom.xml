@@ -4,7 +4,7 @@
 
     <groupId>oracle</groupId>
     <artifactId>coherence.jsr107</artifactId>
-    <version>0.1-SNAPSHOT</version>
+    <version>0.6-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>Coherence JSR 107</name>
@@ -18,13 +18,13 @@
         <dependency>
             <groupId>javax.cache</groupId>
             <artifactId>cache-api</artifactId>
-            <version>0.5-SNAPSHOT</version>
+            <version>0.6-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>javax.cache.implementation</groupId>
             <artifactId>cache-ri-common</artifactId>
-            <version>0.5-SNAPSHOT</version>
+            <version>0.6-SNAPSHOT</version>
         </dependency>
 
         <dependency>
